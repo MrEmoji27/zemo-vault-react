@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 • Zemo's Vault</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nabla&family=Doto:wght@400;600&family=Audiowide&family=Share+Tech+Mono&family=Orbitron:wght@600;800;900&family=Bungee:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --neon:#00ff8c; --bg:#05070d; --panel:rgba(0,0,0,0.5); --purple: #9b5de5; --pink: #ff77e9; }
+    html,body { height:100%; overflow:hidden; }
+    body {
+      margin:0; background: radial-gradient(1200px 800px at 20% 15%, rgba(0,255,140,0.06), rgba(155,93,229,0.05) 45%, rgba(0,0,0,0.65) 70%), var(--bg);
+      color:#eafff7; font-family:'Doto', 'Share Tech Mono', 'Roboto Mono', monospace; text-align:center; min-height:100vh; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility;
+    }
+    .stage { position:relative; min-height:100dvh; width:100vw; overflow:hidden; }
+    .panel {
+      position:relative; z-index:1; display:block;
+      width:100%; height:100dvh; padding:0; backdrop-filter: blur(2px);
+      background: linear-gradient(180deg, rgba(0,0,0,0.38), rgba(0,0,0,0.24));
+    }
+    .center { display:none; }
+    .center-abs { position:absolute; left:50%; top:50%; transform: translate(-50%, -50%); width:100%; padding:0 4vw; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    /* cyberpunk headline with subtle glitch */
+    .cp-title { position:relative; font-family:'Nabla', 'Audiowide', 'Orbitron', sans-serif; color:var(--neon); font-size: clamp(40px, 8vw, 88px); line-height: 0.9; margin:0 0 8px; letter-spacing: 0px; font-weight:400; text-transform: uppercase; }
+    .cp-title::before, .cp-title::after { content: attr(data-text); position:absolute; left:0; top:0; width:100%; overflow:hidden; }
+    .cp-title::before { color:var(--purple); clip-path: polygon(0 0, 100% 0, 100% 38%, 0 42%); transform: translate(-1px, -1px); mix-blend-mode: screen; animation: glitch-shift 2.4s infinite ease-in-out; }
+    .cp-title::after { color:#39e7ff; clip-path: polygon(0 58%, 100% 54%, 100% 100%, 0 100%); transform: translate(1px, 1px); mix-blend-mode: screen; animation: glitch-shift 2.2s infinite ease-in-out reverse; }
+    @keyframes glitch-shift { 0%, 100% { transform: translate(0,0); filter: none; } 10% { transform: translate(1px, -0.5px); } 20% { transform: translate(-1px, 0.5px); } 30% { transform: translate(0.6px, 0.6px); } 40% { transform: translate(-0.6px, -0.6px); } 50% { transform: translate(0.8px, -0.2px); } 60% { transform: translate(-0.8px, 0.2px); } 70% { transform: translate(0.4px, 0.8px); } 80% { transform: translate(-0.4px, -0.8px); } 90% { transform: translate(0.2px, -0.4px); } }
+    /* subtle flicker on headline */
+    .cp-title { animation: flicker 3s infinite steps(1); }
+    @keyframes flicker { 0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; } 20%, 24%, 55% { opacity: 0.4; } }
+    .title-shadow { text-shadow: none; }
+    .sub { margin:0 0 16px; color:#cffff0; font-size:16px; opacity:0.92; font-family:'Doto', 'Share Tech Mono', 'Roboto Mono', monospace; letter-spacing:0.2px; }
+    .btns { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-top: 10px; }
+    .btn { cursor:pointer; font-family:'Doto', 'Share Tech Mono', 'Roboto Mono', monospace; font-weight:600; letter-spacing:0.04em; color:#bfffdc; background: linear-gradient(135deg, rgba(0,255,140,0.16), rgba(0,255,140,0.10));
+      border:1px solid rgba(0,255,140,0.35); border-radius:9999px; padding:10px 14px; text-decoration:none;
+      box-shadow: 0 0 12px rgba(0,255,140,0.12) inset, 0 0 16px rgba(0,255,140,0.16);
+      transition: transform 120ms ease, background 160ms ease, box-shadow 160ms ease;
+    }
+    .btn:hover { transform: translateY(-1px); background: linear-gradient(135deg, rgba(0,255,140,0.22), rgba(0,255,140,0.14)); box-shadow: 0 0 18px rgba(0,255,140,0.25) inset, 0 0 18px rgba(0,255,140,0.22); }
+    .ghost { position: fixed; inset: 0; pointer-events:none; background: radial-gradient(800px 500px at 80% 75%, rgba(255,119,233,0.06), transparent 60%) }
+    .code { margin-top: 14px; font-size:12px; color: rgba(230,255,246,0.75); font-family:'Doto', 'Share Tech Mono', 'Roboto Mono', monospace; letter-spacing:0.08em; text-transform: uppercase; }
+    .footer { position:absolute; left:50%; transform: translateX(-50%); bottom: calc(2vh + env(safe-area-inset-bottom, 0)); width: auto; max-width: 92vw; color:#eafff7; opacity:0.9; font-size:13px; padding: 0 2vw; text-align:center; font-family:'Doto', 'Share Tech Mono', 'Roboto Mono', monospace; letter-spacing:0.04em; }
+    /* pulse canvas in stage */
+    .pulse-wrap { position:absolute; inset:0; z-index:0; pointer-events:none; opacity: 0.6; }
+    /* decorative panel border */
+    .panel::before { content:""; position:absolute; inset:0; border:1px solid rgba(0,255,140,0.15); border-radius:12px; box-shadow:0 0 20px rgba(0,255,140,0.1); pointer-events:none; }
+    @media (max-height: 540px) {
+      .center-abs { position: static; transform: none; padding: 2vh 4vw; }
+      .footer { position: static; transform: none; padding-bottom: 2vh; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .cp-title::before, .cp-title::after { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="pulse-wrap" aria-hidden="true">
+      <canvas id="pulse-canvas"></canvas>
+    </div>
+    <div class="panel">
+      <div class="center-abs">
+        <h1 class="cp-title title-shadow" data-text="404">404</h1>
+        <p class="sub">Looks like Zemo's off <span style="color:#ff77e9; font-weight:700;">GOONING</span> somewhere.</p>
+        <div class="btns">
+          <a class="btn" href="/">Return Home</a>
+          <a class="btn" href="/index.html">Open Vault</a>
+        </div>
+        <div class="code">Error code: 404</div>
+      </div>
+      <div class="footer">If you know Zemo, please let him know to stop GOONING and come fix the site.</div>
+    </div>
+  </div>
+  <div class="ghost" aria-hidden="true"></div>
+
+  <!-- 
+    UPDATED SCRIPT 
+    This is the new "Mind Control Loop" effect.
+  -->
+  <script>
+    (function(){
+      const canvas = document.getElementById('pulse-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d', { alpha: true });
+      let w = 0, h = 0, cx = 0, cy = 0, dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      let t = 0;
+      let last = 0;
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // --- Loop Effect Settings ---
+      const NEON_COLOR = 'rgba(0, 255, 140, 0.6)'; // --neon
+      const PINK_COLOR = 'rgba(255, 119, 233, 0.4)'; // --pink
+      const RING_SPEED = 50; // Pixels per second rings expand
+      const RING_SPACING = 80; // Pixels between rings
+      // -----------------------------
+
+      function resize(){
+        const parent = canvas.parentElement;
+        const rect = parent.getBoundingClientRect();
+        w = Math.max(300, rect.width);
+        h = Math.max(200, rect.height);
+        canvas.width = Math.floor(w * dpr);
+        canvas.height = Math.floor(h * dpr);
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        cx = w / 2;
+        cy = h / 2;
+      }
+
+      function drawStatic() {
+        // Draw a few static, faint rings for reduced motion
+        const maxRadius = Math.max(w, h) * 0.7;
+        const numRings = Math.ceil(maxRadius / RING_SPACING);
+        
+        ctx.clearRect(0,0,w,h);
+
+        for (let i = 0; i < numRings; i += 2) {
+           const radius = (i + 0.5) * RING_SPACING;
+           if (radius > maxRadius) continue;
+           
+           const alpha = (1.0 - (radius / maxRadius)) * 0.5;
+           
+           ctx.strokeStyle = `rgba(0, 255, 140, ${alpha * 0.5})`;
+           ctx.lineWidth = 1;
+           ctx.beginPath();
+           ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+           ctx.stroke();
+           
+           const radius2 = radius + RING_SPACING / 2;
+           if (radius2 > maxRadius) continue;
+           
+           ctx.strokeStyle = `rgba(255, 119, 233, ${alpha * 0.3})`;
+           ctx.beginPath();
+           ctx.arc(cx, cy, radius2, 0, Math.PI * 2);
+           ctx.stroke();
+        }
+      }
+
+      function draw(ts){
+        const now = ts || performance.now();
+        const dt = Math.min(50, now - last) / 1000;
+        last = now;
+        t += dt;
+        
+        ctx.clearRect(0,0,w,h);
+
+        const maxRadius = Math.max(w, h) * 0.7;
+        const numRings = Math.ceil(maxRadius / RING_SPACING);
+        
+        // --- IMPROVEMENT 1: Acceleration ---
+        // 'progress' goes from 0 -> 1 as a ring travels one 'RING_SPACING' distance
+        const progress = (t * RING_SPEED) % RING_SPACING / RING_SPACING;
+        // Apply an easing function (easeInQuad). Ring starts slow, accelerates towards center.
+        const easedProgress = progress * progress; 
+        
+        // Original: const timeMod = (t * RING_SPEED) % RING_SPACING;
+        const timeMod = easedProgress * RING_SPACING;
+        const timeOffset = RING_SPACING - timeMod;
+        const purpleTimeOffset = (timeOffset + RING_SPACING / 2) % RING_SPACING;
+
+        // --- IMPROVEMENT 2: Center Jiggle ---
+        // Make the center vibrate slightly for a more unstable, "glitchy" feel
+        // Use time-based sin/cos for a smooth but chaotic wobble
+        const jiggleX = cx + Math.sin(t * 15) * 2.5; // Fast vibration
+        const jiggleY = cy + Math.cos(t * 12) * 2.5;
+        
+        // --- Draw Green Rings ---
+        ctx.shadowColor = 'rgb(0, 255, 140)';
+        ctx.shadowBlur = 15;
+        
+        for (let i = 0; i < numRings; i++) {
+            const radius = timeOffset + i * RING_SPACING;
+            if (radius > maxRadius + RING_SPACING) continue; // Culling
+            const alpha = 1.0 - (radius / maxRadius);
+            const easedAlpha = Math.max(0, alpha * alpha) * 0.6; // Fade out
+            
+            ctx.strokeStyle = `rgba(0, 255, 140, ${easedAlpha})`;
+            ctx.lineWidth = 1 + alpha * 2.5; // Slightly thicker
+            ctx.beginPath();
+            ctx.arc(jiggleX, jiggleY, radius, 0, Math.PI * 2); // Use jiggled center
+            ctx.stroke();
+        }
+        
+        // --- Draw Pink Rings ---
+        ctx.shadowColor = 'rgb(255, 119, 233)';
+        ctx.shadowBlur = 10;
+        
+        for (let i = 0; i < numRings; i++) {
+            const radius = purpleTimeOffset + i * RING_SPACING;
+            if (radius > maxRadius + RING_SPACING) continue; // Culling
+            const alpha = 1.0 - (radius / maxRadius);
+            const easedAlpha = Math.max(0, alpha * alpha) * 0.4; // Fade out
+            
+            ctx.strokeStyle = `rgba(255, 119, 233, ${easedAlpha})`;
+            ctx.lineWidth = 1 + alpha * 2; // Slightly thicker
+            ctx.beginPath();
+            ctx.arc(jiggleX, jiggleY, radius, 0, Math.PI * 2); // Use jiggled center
+            ctx.stroke();
+        }
+        
+        // --- Draw Pink Rings ---
+        ctx.shadowColor = 'rgb(255, 119, 233)';
+        ctx.shadowBlur = 10;
+        
+        for (let i = 0; i < numRings; i++) {
+            const radius = purpleTimeOffset + i * RING_SPACING;
+            const alpha = 1.0 - (radius / maxRadius);
+            const easedAlpha = Math.max(0, alpha * alpha) * 0.4; // Fade out
+            
+            ctx.strokeStyle = `rgba(255, 119, 233, ${easedAlpha})`;
+            ctx.lineWidth = 1 + alpha * 1.5;
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        ctx.shadowBlur = 0; // Reset shadow
+
+        if (!prefersReduced) {
+            requestAnimationFrame(draw);
+        }
+      }
+
+      // Initial setup
+      resize();
+      window.addEventListener('resize', () => { requestAnimationFrame(resize); });
+      
+      if (prefersReduced) {
+        drawStatic(); // Render the static rings once
+      } else {
+        requestAnimationFrame(draw); // Start the animation loop
+      }
+    })();
+  </script>
+  <script>
+    // Auto-redirect home after 10 seconds
+    setTimeout(() => { try { window.location.href = "/"; } catch(_){} }, 10000);
+    // Fun console easter egg
+    try { console.log("%cYou found Zemo's secret GOON terminal 🧠💀", "color:#00ff8c;font-weight:bold;"); } catch(_){}
+  </script>
+</body>
+</html>
+
+
+

@@ -1,0 +1,207 @@
+/* LudoGame.css - glow + animations + some base layout styles.
+   Keep this file next to LudoGame.jsx and imported at top of component.
+*/
+
+:root{
+  --bg:#020202;
+  --panel-bg:rgba(0,0,0,0.55);
+  --neon-green: #00ff8c;
+  --neon-outline: rgba(0,255,140,0.12);
+  --sakura-pink: #ff77e9;
+  --sakura-purple: #9b5de5;
+  --tile-border: rgba(255,255,255,0.06);
+}
+
+/* outer neon panels */
+.neon-panel{
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.35));
+  border: 1px solid rgba(0,255,140,0.06);
+  box-shadow: 0 0 18px rgba(0,255,140,0.02) inset;
+}
+
+/* active player panel */
+.neon-active{
+  box-shadow: 0 0 18px rgba(0,255,140,0.14);
+  border-color: rgba(0,255,140,0.28);
+}
+
+/* tokens in left panel */
+.token-btn{
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.token-selected{
+  transform: scale(1.03);
+  box-shadow: 0 0 16px rgba(255,255,255,0.04), 0 0 28px rgba(0,255,140,0.22);
+}
+
+/* board container */
+.board-outer{
+  padding: 12px;
+  background: radial-gradient(1200px 800px at 25% 20%, rgba(255,119,233,0.06), rgba(155,93,229,0.05) 45%, rgba(0,0,0,0.55) 70%),
+              linear-gradient(180deg, rgba(0,0,0,0.36), rgba(0,0,0,0.5));
+  border-radius: 10px;
+  border: 1px solid rgba(255,119,233,0.18);
+  box-shadow: 0 0 32px rgba(255,119,233,0.04), 0 0 28px rgba(155,93,229,0.06) inset;
+  position: relative;
+}
+
+/* dice box */
+.dice-display{
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: -34px;
+  background: linear-gradient(180deg,#00140a,#002815);
+  border-radius: 10px;
+  width: 64px;
+  height: 64px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#bfffdc;
+  font-weight:700;
+  box-shadow: 0 0 18px rgba(0,255,140,0.08), 0 0 36px rgba(0,255,140,0.03) inset;
+  border: 1px solid rgba(0,255,140,0.18);
+}
+.dice-rolling { animation: dice-roll 700ms ease; }
+@keyframes dice-roll { 0%{ transform: translateX(-50%) rotate(0deg) } 50% { transform: translateX(-50%) rotate(12deg) scale(1.06) } 100% { transform: translateX(-50%) rotate(0deg) } }
+.dice-inner{ font-size:22px; }
+
+/* board grid: 15x15 */
+.board-grid{
+  display: grid;
+  grid-template-columns: repeat(15, minmax(24px, 1fr));
+  grid-auto-rows: minmax(24px, 1fr);
+  gap: 4px;
+  width: 100%;
+  aspect-ratio: 1/1;
+}
+
+/* general cell */
+.board-cell{
+  position: relative;
+  background: rgba(5,5,8,0.6);
+  border-radius: 4px;
+  border: 1px solid var(--tile-border);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow: visible;
+}
+
+/* path vs base vs home visuals */
+.cell-path{ background: rgba(8,8,12,0.7); border: 1px solid rgba(255,255,255,0.04); }
+.cell-path-safe{ background: rgba(64,20,56,0.55); border: 1px solid rgba(255,119,233,0.25); box-shadow: 0 0 12px rgba(255,119,233,0.12) inset; }
+.cell-center{ background: linear-gradient(135deg, rgba(0,0,0,0.5), rgba(0,0,0,0.65)); border: 2px solid rgba(255,255,255,0.04); }
+
+/* base quadrant tints */
+.cell-base-green{ background: linear-gradient(180deg, rgba(0,160,80,0.35), rgba(0,120,60,0.28)); }
+.cell-base-yellow{ background: linear-gradient(180deg, rgba(240,200,40,0.35), rgba(200,160,20,0.28)); }
+.cell-base-red{ background: linear-gradient(180deg, rgba(180,20,20,0.35), rgba(120,10,10,0.28)); }
+.cell-base-blue{ background: linear-gradient(180deg, rgba(20,90,170,0.35), rgba(10,50,110,0.28)); }
+
+/* home path tints (lighter strip) */
+.cell-home-green{ background: rgba(0,200,120,0.10); border:1px solid rgba(0,200,120,0.08); }
+.cell-home-yellow{ background: rgba(255,220,90,0.10); border:1px solid rgba(255,220,90,0.08); }
+.cell-home-red{ background: rgba(255,110,110,0.10); border:1px solid rgba(255,110,110,0.08); }
+.cell-home-blue{ background: rgba(120,200,255,0.10); border:1px solid rgba(120,200,255,0.08); }
+
+/* small index number for debugging / clarity */
+.cell-index{ position:absolute; top:4px; left:4px; font-size:10px; color: rgba(180,255,200,0.25); }
+
+/* token container inside cell */
+.cell-tokens{ display:flex; gap:6px; align-items:center; justify-content:center; z-index:5; }
+
+/* token visuals */
+.token{
+  width: 24px; height:24px; border-radius:999px;
+  display:flex; align-items:center; justify-content:center; color:#081;
+  border: 2px solid rgba(255,255,255,0.14);
+  font-size:11px; font-weight:800;
+  text-shadow: 0 0 6px rgba(255,255,255,0.2);
+  transition: transform 280ms cubic-bezier(.2,.9,.2,1), box-shadow 280ms, filter 280ms;
+}
+
+/* idle token slight glow */
+.token-idle { transform: translateY(0) scale(1); }
+.token-can-move { box-shadow: 0 0 18px var(--sakura-pink), 0 0 10px rgba(255,119,233,0.35) inset; filter: saturate(1.15); }
+.token-selected { box-shadow: 0 0 22px var(--sakura-pink), 0 0 14px rgba(255,119,233,0.45) inset; transform: scale(1.05); }
+
+/* move animation: quick pop + glow */
+.token-move-anim {
+  animation: token-move 420ms ease forwards;
+}
+@keyframes token-move {
+  0% { transform: scale(0.9) translateY(-6px); box-shadow: 0 0 2px rgba(255,255,255,0.03); }
+  40% { transform: scale(1.18) translateY(-10px); box-shadow: 0 0 18px rgba(255,255,255,0.06); }
+  100% { transform: scale(1) translateY(0); box-shadow: 0 0 12px rgba(255,255,255,0.03); }
+}
+
+/* overflow token */
+.token-overflow { width:26px; height:18px; border-radius:6px; background: rgba(255,255,255,0.08); color:#e9f6f0; font-size:10px; }
+
+/* neon border for board */
+neon-border { box-shadow: 0 0 30px rgba(0,255,140,0.03); border: 1px solid rgba(0,255,140,0.08); padding:12px; }
+
+/* neon buttons */
+.neon-btn-green{ background: linear-gradient(180deg,#00ff8c,#00c87a); box-shadow: 0 6px 26px rgba(0,255,140,0.06); color:#001; border-radius:8px; font-weight:700; }
+.neon-btn-yellow{ background: linear-gradient(180deg,#ffd43b,#e6b800); box-shadow: 0 6px 26px rgba(255,212,59,0.05); font-weight:700; }
+.neon-btn-red{ background: linear-gradient(180deg,#ff7b7b,#ff4d4d); box-shadow: 0 6px 26px rgba(255,80,80,0.04); font-weight:700; }
+.neon-btn-white{ background: linear-gradient(180deg,#ffffff0d,#ffffff05); color:#dff; }
+
+/* responsive: shrink board on small screens */
+@media (max-width: 1000px) {
+  .board-grid { gap: 3px; grid-template-columns: repeat(15, minmax(18px, 1fr)); grid-auto-rows: minmax(18px, 1fr); }
+  .dice-display { top: -30px; width:54px; height:54px; }
+  .token { width:18px; height:18px; font-size:10px; }
+}
+
+/* small polish */
+.board-cell { transition: box-shadow 160ms, transform 160ms; }
+.board-cell:hover { transform: translateY(-2px); box-shadow: 0 6px 40px rgba(255,119,233,0.06); }
+
+/* legal destination glow */
+.cell-legal { box-shadow: 0 0 18px rgba(255,119,233,0.25) inset, 0 0 12px rgba(155,93,229,0.25); border-color: rgba(255,119,233,0.25); }
+
+/* ===================== */
+/* SVG BOARD FROM Ludo.jsx */
+/* ===================== */
+.ludo-svg { width: 100%; height: auto; display: block; }
+
+/* Bases */
+.base-green { fill: rgba(0,160,80,0.35); stroke: rgba(255,255,255,0.06); }
+.base-yellow{ fill: rgba(240,200,40,0.35); stroke: rgba(255,255,255,0.06); }
+.base-red   { fill: rgba(180,20,20,0.35);  stroke: rgba(255,255,255,0.06); }
+.base-blue  { fill: rgba(20,90,170,0.35);  stroke: rgba(255,255,255,0.06); }
+
+/* Main path tiles */
+.path { fill: rgba(20,28,60,0.9); stroke: rgba(255,255,255,0.06); }
+.path-safe { fill: rgba(64,20,56,0.7); stroke: rgba(255,119,233,0.35); }
+.safe-star { fill: #ffec8b; filter: drop-shadow(0 0 4px rgba(255,236,139,0.5)); }
+
+/* Home lanes */
+.home { stroke-width: 0.06; }
+.home.green  { fill: rgba(0,200,120,0.18);  stroke: rgba(0,200,120,0.25); }
+.home.yellow { fill: rgba(255,220,90,0.18);  stroke: rgba(255,220,90,0.25); }
+.home.red    { fill: rgba(255,110,110,0.18); stroke: rgba(255,110,110,0.25); }
+.home.blue   { fill: rgba(120,200,255,0.18); stroke: rgba(120,200,255,0.25); }
+
+/* Center rosette */
+.center-core { fill: rgba(0,0,0,0.55); stroke: rgba(255,255,255,0.08); }
+.center-fan.green  { fill: #00ff8c; opacity: 0.85; }
+.center-fan.yellow { fill: #ffd43b; opacity: 0.85; }
+.center-fan.red    { fill: #ff4d4d; opacity: 0.85; }
+.center-fan.blue   { fill: #3bb4ff; opacity: 0.85; }
+
+/* Tokens */
+.token-svg .chip { fill: #0ef; stroke: rgba(255,255,255,0.18); }
+.token-svg.green .chip  { fill: #00ff8c; }
+.token-svg.yellow .chip { fill: #ffd43b; }
+.token-svg.red .chip    { fill: #ff4d4d; }
+.token-svg.blue .chip   { fill: #3bb4ff; }
+.token-svg .chip-label { fill: #041; font-weight: 800; font-size: 0.28px; letter-spacing: .02px; }
+.token-svg.can-move .chip { filter: drop-shadow(0 0 0.45px #ff77e9); }
+.token-svg.selected .chip { filter: drop-shadow(0 0 0.6px #ff77e9); }
+
+/* Legal destination glow */
+.svg-legal rect, .svg-legal.home { filter: drop-shadow(0 0 0.35px #ff77e9); }
