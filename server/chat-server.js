@@ -1,6 +1,6 @@
 import { WebSocketServer } from 'ws';
 
-const PORT = process.env.CHAT_PORT ? Number(process.env.CHAT_PORT) : 6769;
+const PORT = Number(process.env.PORT) || 6769;
 const CHAT_PASSWORD = process.env.CHAT_PASSWORD || 'Alonso@2005';
 
 const wss = new WebSocketServer({ port: PORT });

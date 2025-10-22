@@ -27,7 +27,11 @@ export default function SecretChat({ open, onClose }) {
   const url = useMemo(() => {
     const port = import.meta.env.VITE_CHAT_PORT || 6769;
     const host = import.meta.env.VITE_CHAT_HOST || 'localhost';
-    return `ws://${host}:${port}`;
+    if (import.meta.env.PROD) {
+      return `wss://${host}`;
+    } else {
+      return `ws://${host}:${port}`;
+    }
   }, []);
 
   useEffect(() => {
