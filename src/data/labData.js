@@ -328,88 +328,109 @@ All frames transmitted successfully!`
       "exp4": {
         title: "4. Dijkstra's Shortest Path Algorithm",
         graphData: [
-          [0, 10, 0, 30, 100],
-          [10, 0, 50, 0, 0],
-          [0, 50, 0, 20, 10],
-          [30, 0, 20, 0, 60],
-          [100, 0, 10, 60, 0]
+          [0, 10, 15, 20, 5],
+          [10, 0, 20, 25, 23],
+          [20, 10, 0, 15, 25],
+          [30, 10, 20, 0, 24],
+          [15, 25, 35, 41, 0]
         ],
         parts: [{
           code: `#include <stdio.h>
-#define INFINITY 9999
-#define MAX 10
+#include <limits.h>
+#define MAX 100
 
-void dijkstra(int G[MAX][MAX], int n, int startnode);
+void dijkstra(int graph[MAX][MAX], int numVertices, int src) {
+    int dist[MAX];
+    int visited[MAX];
+    int parent[MAX];
 
-int main() {
-    int G[MAX][MAX], i, j, n, u;
-    printf("Enter no. of vertices: ");
-    scanf("%d", &n);
-    printf("\\nEnter the adjacency matrix:\\n");
-    for (i = 0; i < n; i++)
-        for (j = 0; j < n; j++)
-            scanf("%d", &G[i][j]);
-    printf("\\nEnter the starting node: ");
-    scanf("%d", &u);
-    dijkstra(G, n, u);
-    return 0;
+    for (int i = 0; i < numVertices; i++) {
+        dist[i] = INT_MAX;
+        visited[i] = 0;
+        parent[i] = -1;
+    }
+
+    dist[src] = 0;
+
+    for (int count = 0; count < numVertices - 1; count++) {
+        int u = -1;
+        int min = INT_MAX;
+
+        for (int v = 0; v < numVertices; v++) {
+            if (!visited[v] && dist[v] <= min) {
+                min = dist[v];
+                u = v;
+            }
+        }
+        
+        if (u == -1) break;
+
+        visited[u] = 1;
+
+        for (int v = 0; v < numVertices; v++) {
+            if (!visited[v] && graph[u][v] && dist[u] != INT_MAX
+                && dist[u] + graph[u][v] < dist[v]) {
+                dist[v] = dist[u] + graph[u][v];
+                parent[v] = u;
+            }
+        }
+    }
+
+    printf("Vertex \tDistance from Source \tPath\n");
+    for (int i = 0; i < numVertices; i++) {
+        printf("\n%d \t\t %d \t\t", i, dist[i]);
+        
+        int j = i;
+        while (j != -1) {
+            printf("%d ", j);
+            j = parent[j];
+            if (j != -1) {
+                printf("<- ");
+            }
+        }
+    }
+    printf("\n");
 }
 
-void dijkstra(int G[MAX][MAX], int n, int startnode) {
-    int cost[MAX][MAX], distance[MAX], pred[MAX];
-    int visited[MAX], count, mindistance, nextnode, i, j;
-    for (i = 0; i < n; i++)
-        for (j = 0; j < n; j++)
-            cost[i][j] = (G[i][j] == 0) ? INFINITY : G[i][j];
-    for (i = 0; i < n; i++) {
-        distance[i] = cost[startnode][i];
-        pred[i] = startnode;
-        visited[i] = 0;
-    }
-    distance[startnode] = 0;
-    visited[startnode] = 1;
-    count = 1;
-    while (count < n - 1) {
-        mindistance = INFINITY;
-        for (i = 0; i < n; i++)
-            if (distance[i] < mindistance && !visited[i]) {
-                mindistance = distance[i];
-                nextnode = i;
-            }
-        visited[nextnode] = 1;
-        for (i = 0; i < n; i++)
-            if (!visited[i] && (mindistance + cost[nextnode][i] < distance[i])) {
-                distance[i] = mindistance + cost[nextnode][i];
-                pred[i] = nextnode;
-            }
-        count++;
-    }
-    for (i = 0; i < n; i++)
-        if (i != startnode) {
-            printf("\\nDistance of node %d = %d. Path = %d", i, distance[i], i);
-            j = i;
-            do {
-                j = pred[j];
-                printf(" <- %d", j);
-            } while (j != startnode);
+int main() {
+    int numVertices;
+    printf("Enter the number of vertices: ");
+    scanf("%d", &numVertices);
+
+    int graph[MAX][MAX];
+    printf("Enter the adjacency matrix:\n");
+    for (int i = 0; i < numVertices; i++) {
+        for (int j = 0; j < numVertices; j++) {
+            scanf("%d", &graph[i][j]);
         }
-    printf("\\n");
+    }
+
+    int src;
+    printf("Enter the source vertex: ");
+    scanf("%d", &src);
+
+    if (src < 0 || src >= numVertices) {
+        printf("Invalid source vertex.\n");
+        return 1;
+    }
+
+    dijkstra(graph, numVertices, src);
+    return 0;
 }`,
-          output: `Enter no. of vertices: 5
-
+          output: `Enter the number of vertices: 5
 Enter the adjacency matrix:
-0 10 0 30 100
-10 0 50 0 0
-0 50 0 20 10
-30 0 20 0 60
-100 0 10 60 0
-
-Enter the starting node: 0
-
-Distance of node 1 = 10. Path = 1 <- 0
-Distance of node 2 = 50. Path = 2 <- 3 <- 0
-Distance of node 3 = 30. Path = 3 <- 0
-Distance of node 4 = 60. Path = 4 <- 2 <- 3 <- 0`
+0 10 15 20 5
+10 0 20 25 23
+20 10 0 15 25
+30 10 20 0 24
+15 25 35 41 0
+Enter the source vertex: 0
+Vertex Distance from Source Path
+0 	 0 		 0
+1 	 10 		 1 <- 0
+2 	 15 		 2 <- 0
+3 	 20 		 3 <- 0
+4 	 5 		 4 <- 0`
         }]
       },
       "exp5": {
@@ -422,64 +443,49 @@ struct node {
     unsigned from[20];
 } rt[10];
 
-int main() {
-    int costmat[20][20];
-    int nodes, i, j, k, count = 0;
-    printf("Enter the number of nodes: ");
-    scanf("%d", &nodes);
-    printf("Enter the cost matrix:\\n");
-    for (i = 0; i < nodes; i++) {
-        for (j = 0; j < nodes; j++) {
-            scanf("%d", &costmat[i][j]);
-            costmat[i][i] = 0;
-            rt[i].dist[j] = costmat[i][j];
+int main()
+{
+    int dmat[20][20];
+    int n, i, j, k, count;
+
+    printf("\nEnter the number of nodes: ");
+    scanf("%d", &n);
+
+    printf("\nEnter the cost matrix :\n");
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            scanf("%d", &dmat[i][j]);
+            dmat[i][i] = 0;
+            rt[i].dist[j] = dmat[i][j];
             rt[i].from[j] = j;
         }
     }
+
     do {
         count = 0;
-        for (i = 0; i < nodes; i++)
-            for (j = 0; j < nodes; j++)
-                for (k = 0; k < nodes; k++)
-                    if (rt[i].dist[j] > costmat[i][k] + rt[k].dist[j]) {
-                        rt[i].dist[j] = rt[i].dist[k] + rt[k].dist[j];
+        for (i = 0; i < n; i++) {
+            for (j = 0; j < n; j++) {
+                for (k = 0; k < n; k++) {
+                    if (rt[i].dist[j] > dmat[i][k] + rt[k].dist[j]) {
+                        rt[i].dist[j] = dmat[i][k] + rt[k].dist[j];
                         rt[i].from[j] = k;
                         count++;
                     }
+                }
+            }
+        }
     } while (count != 0);
-    for (i = 0; i < nodes; i++) {
-        printf("\\nRouting table for router %d\\n", i + 1);
-        printf("Node\\tVia\\tDistance\\n");
-        for (j = 0; j < nodes; j++) {
-            printf("%d\\t%d\\t%d\\n", j + 1, rt[i].from[j] + 1, rt[i].dist[j]);
+
+    for (i = 0; i < n; i++) {
+        printf("\n\nState value for router %d is \n", i + 1);
+        for (j = 0; j < n; j++) {
+            printf("\t\nnode %d via %d Distance%d", j + 1, rt[i].from[j] + 1, rt[i].dist[j]);
         }
     }
-    printf("\\n");
+    printf("\n\n");
     return 0;
 }`,
-          output: `Enter the number of nodes: 3
-Enter the cost matrix:
-0 2 7
-2 0 1
-7 1 0
-
-Routing table for router 1
-Node  Via  Distance
-1     1    0
-2     2    2
-3     2    3
-
-Routing table for router 2
-Node  Via  Distance
-1     1    2
-2     2    0
-3     3    1
-
-Routing table for router 3
-Node  Via  Distance
-1     2    3
-2     2    1
-3     3    0`
+          output: `Enter the number of nodes: 4 Enter the cost matrix: 0 1 2 9 4 1 2 0 1 0 9 1 2 0 4 0 2 0 State value for router 1 is node 1 via 1 Distance0 node 2 via 4 Distance4 node 3 via 4 Distance5 node 4 via 4 Distance4 State value for router 2 is node 1 via 4 Distance4 node 2 via 2 Distance0 node 3 via 3 Distance1 node 4 via 4 Distance0 State value for router 3 is node 1 via 4 Distance4 node 2 via 4 Distance0 node 3 via 3 Distance0 node 4 via 4 Distance0 State value for router 4 is node 1 via 1 Distance4 node 2 via 2 Distance0 node 3 via 2 Distance1 node 4 via 4 Distance0`
         }]
       },
       "exp6": {
