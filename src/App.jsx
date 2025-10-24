@@ -898,7 +898,7 @@ function App() {
       )}
 
       {/* Experiment Display */}
-      <div id="experiment-display">
+      <div id="experiment-display" style={{ background: 'rgba(0,0,0,0.8)', minHeight: '200px', padding: '20px' }}>
         {currentExperiment ? (
           <div className="glass-panel">
             <h2 className="arcade-title mb-4">{currentExperiment.title}</h2>

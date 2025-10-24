@@ -6,6 +6,5 @@ import { devOps } from './DevOps';
 export const labData = {
   "1st Year": firstYear["1st Year"],
   "2nd Year": secondYear["2nd Year"],
-  "3rd Year": thirdYear["3rd Year"],
-  "DevOps": devOps
+  "3rd Year": { ...thirdYear["3rd Year"], ...devOps },
 };
