@@ -899,6 +899,12 @@ function App() {
 
       {/* Experiment Display */}
       <div id="experiment-display">
+        {selectedYear && subjects.length === 0 && (
+          <div className="glass-panel">
+            <h2 className="arcade-title mb-4">No Subjects Available</h2>
+            <p className="text-center text-cyberpunk-green">This year has no subjects yet. Check back later!</p>
+          </div>
+        )}
         {currentExperiment && (
           <div className="glass-panel">
             <h2 className="arcade-title mb-4">{currentExperiment.title}</h2>
