@@ -203,14 +203,14 @@ export default function Flappy() {
     // use pointer events to support mouse and touch
     const onPointer = () => { try { canvas.focus(); } catch(_){}; onPress(); };
     // bind globally so overlays or layout don't block input
-    window.addEventListener('pointerdown', onPointer, { passive: true });
+    canvas.addEventListener('pointerdown', onPointer, { passive: true });
     window.addEventListener('keydown', onKey);
     document.addEventListener('keydown', onKey);
 
     return () => {
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener('resize', resize);
-      window.removeEventListener('pointerdown', onPointer);
+      canvas.removeEventListener('pointerdown', onPointer);
       window.removeEventListener('keydown', onKey);
       document.removeEventListener('keydown', onKey);
     };
