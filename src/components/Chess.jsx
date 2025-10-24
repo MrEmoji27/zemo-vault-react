@@ -29,15 +29,30 @@ const evaluateBoard = (game) => {
   for (const row of board) {
     for (const piece of row) {
       if (!piece) continue;
-      const value = PIECE_VALUES[piece.type];
+      let value = PIECE_VALUES[piece.type];
+      // Add positional bonuses
+      if (piece.type === 'p') value += piece.color === 'w' ? (7 - piece.square.charCodeAt(1) + '1'.charCodeAt(0)) * 10 : (piece.square.charCodeAt(1) - '1'.charCodeAt(0)) * 10;
+      if (piece.type === 'k') value += piece.color === 'w' ? (piece.square.charCodeAt(0) - 'd'.charCodeAt(0)) * 5 : (piece.square.charCodeAt(0) - 'd'.charCodeAt(0)) * -5;
       total += piece.color === 'w' ? value : -value;
     }
   }
   return total;
 };
 
-const minimax = (game, depth, alpha, beta, maximizingPlayer) => {
-  if (depth === 0 || game.isGameOver()) {
+const isQuiet = (game) => {
+  const moves = game.moves({ verbose: true });
+  return !moves.some(move => move.captured || game.inCheck());
+};
+
+const minimax = (game, depth, alpha, beta, maximizingPlayer, isQuiescence = false) => {
+  if (depth === 0) {
+    if (isQuiescence && !isQuiet(game)) {
+      return minimax(game, 1, alpha, beta, maximizingPlayer, true);
+    }
+    return evaluateBoard(game);
+  }
+
+  if (game.isGameOver()) {
     return evaluateBoard(game);
   }
 
@@ -47,7 +62,7 @@ const minimax = (game, depth, alpha, beta, maximizingPlayer) => {
     let maxEval = -Infinity;
     for (const move of moves) {
       game.move(move);
-      const evaluation = minimax(game, depth - 1, alpha, beta, false);
+      const evaluation = minimax(game, depth - 1, alpha, beta, false, isQuiescence);
       game.undo();
       if (evaluation > maxEval) {
         maxEval = evaluation;
@@ -63,7 +78,7 @@ const minimax = (game, depth, alpha, beta, maximizingPlayer) => {
   let minEval = Infinity;
   for (const move of moves) {
     game.move(move);
-    const evaluation = minimax(game, depth - 1, alpha, beta, true);
+    const evaluation = minimax(game, depth - 1, alpha, beta, true, isQuiescence);
     game.undo();
     if (evaluation < minEval) {
       minEval = evaluation;
@@ -214,7 +229,7 @@ function ChessGame() {
 
     setAiThinking(true);
     aiMoveTimeout.current = setTimeout(() => {
-      const bestMove = findBestMoveForBlack(game, 2) || game.moves({ verbose: true })[0];
+      const bestMove = findBestMoveForBlack(game, 4) || game.moves({ verbose: true })[0];
       if (bestMove && !game.isGameOver()) {
         const applied = game.move(bestMove);
         undoneMovesRef.current = [];
