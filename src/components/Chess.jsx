@@ -231,7 +231,7 @@ function ChessGame() {
 
     setAiThinking(true);
     aiMoveTimeout.current = setTimeout(() => {
-      const bestMove = findBestMoveForBlack(game, 4) || game.moves({ verbose: true })[0];
+      const bestMove = findBestMoveForBlack(game, 3) || game.moves({ verbose: true })[0];
       if (bestMove && !game.isGameOver()) {
         const applied = game.move(bestMove);
         undoneMovesRef.current = [];
