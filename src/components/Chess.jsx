@@ -96,7 +96,7 @@ const findBestMoveForBlack = (game, depth) => {
   const moves = game.moves({ verbose: true });
   if (moves.length === 0) return null;
 
-  let bestMove = moves[0];
+  let bestMoves = [];
   let bestValue = Infinity;
 
   for (const move of moves) {
@@ -105,11 +105,13 @@ const findBestMoveForBlack = (game, depth) => {
     game.undo();
     if (boardValue < bestValue) {
       bestValue = boardValue;
-      bestMove = move;
+      bestMoves = [move];
+    } else if (boardValue === bestValue) {
+      bestMoves.push(move);
     }
   }
 
-  return bestMove;
+  return bestMoves[Math.floor(Math.random() * bestMoves.length)];
 };
 
 const buildStatusMessage = (game) => {
