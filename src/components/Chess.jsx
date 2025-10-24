@@ -77,6 +77,7 @@ const minimax = (game, depth, alpha, beta, maximizingPlayer) => {
 };
 
 const findBestMoveForBlack = (game, depth) => {
+  if (game.isGameOver()) return null;
   const moves = game.moves({ verbose: true });
   if (moves.length === 0) return null;
 
@@ -205,13 +206,16 @@ function ChessGame() {
   const maybeScheduleAiMove = useCallback(() => {
     if (!vsComputer) return;
     const game = gameRef.current;
-    if (game.turn() !== 'b' || game.isGameOver()) return;
+    if (game.turn() !== 'b' || game.isGameOver()) {
+      setAiThinking(false);
+      return;
+    }
     if (aiMoveTimeout.current) return;
 
     setAiThinking(true);
     aiMoveTimeout.current = setTimeout(() => {
       const bestMove = findBestMoveForBlack(game, 2) || game.moves({ verbose: true })[0];
-      if (bestMove) {
+      if (bestMove && !game.isGameOver()) {
         const applied = game.move(bestMove);
         undoneMovesRef.current = [];
         updateState(applied);
