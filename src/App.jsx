@@ -899,7 +899,7 @@ function App() {
 
       {/* Experiment Display */}
       <div id="experiment-display">
-        {currentExperiment && (
+        {currentExperiment ? (
           <div className="glass-panel">
             <h2 className="arcade-title mb-4">{currentExperiment.title}</h2>
             {currentExperiment.parts && currentExperiment.parts.map((part, index) => (
@@ -935,6 +935,11 @@ function App() {
                 )}
               </div>
             ))}
+          </div>
+        ) : (
+          <div className="glass-panel">
+            <h2 className="arcade-title mb-4">Lab Experiments</h2>
+            <p className="text-center text-cyberpunk-green">Select a year, subject, and experiment from above to view the content.</p>
           </div>
         )}
       </div>
