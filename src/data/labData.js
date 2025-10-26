@@ -4,7 +4,7 @@ import { thirdYear } from './3rdYear';
 import { devOps } from './DevOps';
 
 export const labData = {
-  "1st Year": firstYear["1st Year"],
-  "2nd Year": secondYear["2nd Year"],
+  "1st Year": firstYear,
+  "2nd Year": secondYear,
   "3rd Year": { ...thirdYear, "DevOps": devOps },
 };

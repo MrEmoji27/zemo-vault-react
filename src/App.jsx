@@ -131,11 +131,15 @@ function App() {
       const r = 2; // dot radius
       for (let i = 0; i < dots.length; i++) {
         const d = dots[i];
-        // per-dot flicker
-        const flick = 0.85 + 0.15 * Math.sin((ts * 0.006) + d.seed);
+        // per-dot flicker with multiple frequencies for more dynamic effect
+        const flick1 = Math.sin((ts * 0.006) + d.seed);
+        const flick2 = Math.sin((ts * 0.01) + d.seed * 2);
+        const flick = 0.8 + 0.2 * ((flick1 + flick2) * 0.5 + 0.5);
         // vertical scanline brightness boost
         const scanBoost = 0.75 + 0.25 * Math.cos((d.y / canvas.height) * Math.PI * 2 + scan * Math.PI * 2);
         const a = (dark ? 0.7 : 0.5) * flick * scanBoost;
+        ctx.shadowColor = `rgba(${base[0]}, ${base[1]}, ${base[2]}, 0.5)`;
+        ctx.shadowBlur = 5;
         ctx.fillStyle = `rgba(${base[0]}, ${base[1]}, ${base[2]}, ${a})`;
         ctx.beginPath();
         ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
@@ -412,18 +416,17 @@ function App() {
     if (!coin) return;
 
     const spins = Math.floor(Math.random() * 4) + 5;
-    coinRotation.current += spins * 360;
+    const randomOffset = Math.random() * 360; // Random starting point for more dynamic spins
+    const baseSpin = 720; // Ensure at least 2 full spins for visible animation
+    coinRotation.current += baseSpin + randomOffset;
 
     const isHeadsResult = Math.random() < 0.5;
     const resultText = isHeadsResult ? 'Heads' : 'Tails';
 
     const finalOrientation = ((coinRotation.current % 360) + 360) % 360;
-    const currentlyHeads = finalOrientation === 180; // Heads = Z face (back)
-    if (isHeadsResult && !currentlyHeads) {
-      coinRotation.current += 180;
-    } else if (!isHeadsResult && currentlyHeads) {
-      coinRotation.current += 180;
-    }
+    const target = isHeadsResult ? 180 : 0;
+    const delta = (target - finalOrientation + 360) % 360;
+    coinRotation.current += delta;
 
     coin.style.transform = `rotateY(${coinRotation.current}deg)`;
 
@@ -933,9 +936,7 @@ function App() {
                 )}
                 {part.explanation && (
                   <div className="code-section">
-                    <div className="code-header">
-                      <h4 className="code-title">Explanation:</h4>
-                    </div>
+                    <div className="code-title">Explanation:</div>
                     <pre className="code-block"><code>{part.explanation}</code></pre>
                   </div>
                 )}
