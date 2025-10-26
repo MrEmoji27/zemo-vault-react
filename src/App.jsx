@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, Suspense, lazy, useMemo } from 'rea
 import { labData } from './data/labData';
 import ErrorBoundary from './components/ErrorBoundary';
 import SecretChat from './components/SecretChat';
-
 const Doom = lazy(() => import('./components/Doom'));
 const ChessGame = lazy(() => import('./components/Chess'));
 const Flappy = lazy(() => import('./components/Flappy'));
