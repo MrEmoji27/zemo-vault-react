@@ -423,7 +423,106 @@ Vertex Distance from Source Path
       }]
     },
     "exp5": {
-      title: "5. Distance Vector Routing Algorithm",
+      title: "5. Broadcast Tree Program",
+      parts: [{
+        code: `#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX 100
+
+typedef struct {
+    int data[MAX];
+    int front, rear;
+} Queue;
+
+void initQueue(Queue *q) {
+    q->front = q->rear = -1;
+}
+
+int isEmpty(Queue *q) {
+    return q->front == -1;
+}
+
+void enqueue(Queue *q, int val) {
+    if (q->rear == MAX - 1) return;
+    if (q->front == -1) q->front = 0;
+    q->data[++q->rear] = val;
+}
+
+int dequeue(Queue *q) {
+    if (isEmpty(q)) return -1;
+    int val = q->data[q->front];
+    if (q->front == q->rear) q->front = q->rear = -1;
+    else q->front++;
+    return val;
+}
+
+void bfs(int graph[MAX][MAX], int n, int start, int parent[]) {
+    int visited[MAX] = {0};
+    Queue q;
+    initQueue(&q);
+    visited[start] = 1;
+    enqueue(&q, start);
+    parent[start] = -1;
+
+    while (!isEmpty(&q)) {
+        int u = dequeue(&q);
+        for (int v = 0; v < n; v++) {
+            if (graph[u][v] && !visited[v]) {
+                visited[v] = 1;
+                parent[v] = u;
+                enqueue(&q, v);
+            }
+        }
+    }
+}
+
+void printBroadcastTree(int parent[], int n) {
+    printf("Broadcast Tree:\\n");
+    for (int i = 0; i < n; i++) {
+        if (parent[i] != -1) {
+            printf("%d -> %d\\n", parent[i], i);
+        }
+    }
+}
+
+int main() {
+    int n, graph[MAX][MAX];
+    printf("Enter number of nodes: ");
+    scanf("%d", &n);
+
+    printf("Enter adjacency matrix:\\n");
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            scanf("%d", &graph[i][j]);
+        }
+    }
+
+    int start;
+    printf("Enter starting node: ");
+    scanf("%d", &start);
+
+    int parent[MAX];
+    bfs(graph, n, start, parent);
+    printBroadcastTree(parent, n);
+
+    return 0;
+}`,
+        output: `Enter number of nodes: 4
+Enter adjacency matrix:
+0 1 1 0
+1 0 1 1
+1 1 0 0
+0 1 0 0
+Enter starting node: 0
+Broadcast Tree:
+0 -> 1
+0 -> 2
+1 -> 3`
+      }]
+    },
+    "exp6": {
+      title: "6. Distance Vector Routing Algorithm",
       parts: [{
         code: `#include <stdio.h>
 
@@ -477,150 +576,263 @@ int main()
         output: `Enter the number of nodes: 4 Enter the cost matrix: 0 1 2 9 4 1 2 0 1 0 9 1 2 0 4 0 2 0 State value for router 1 is node 1 via 1 Distance0 node 2 via 4 Distance4 node 3 via 4 Distance5 node 4 via 4 Distance4 State value for router 2 is node 1 via 4 Distance4 node 2 via 2 Distance0 node 3 via 3 Distance1 node 4 via 4 Distance0 State value for router 3 is node 1 via 4 Distance4 node 2 via 4 Distance0 node 3 via 3 Distance0 node 4 via 4 Distance0 State value for router 4 is node 1 via 1 Distance4 node 2 via 2 Distance0 node 3 via 2 Distance1 node 4 via 4 Distance0`
       }]
     },
-    "exp6": {
+    "exp7": {
       title: "7. Data Encryption and Decryption",
       parts: [{
-        code: `#include<stdio.h>
+        code: `#include <stdio.h>
+#include <ctype.h>
+
+void encrypt(char text[], int key) {
+    char ch;
+    for (int i = 0; text[i] != '\\0'; ++i) {
+        ch = text[i];
+        if (isalnum(ch)) {
+            if (islower(ch)) {
+                ch = (ch - 'a' + key) % 26 + 'a';
+            }
+            if (isupper(ch)) {
+                ch = (ch - 'A' + key) % 26 + 'A';
+            }
+            if (isdigit(ch)) {
+                ch = (ch - '0' + key) % 10 + '0';
+            }
+        } else {
+            printf("Invalid Message\\n");
+            return;
+        }
+        text[i] = ch;
+    }
+    printf("Encrypted message: %s\\n", text);
+}
+
+void decrypt(char text[], int key) {
+    char ch;
+    for (int i = 0; text[i] != '\\0'; ++i) {
+        ch = text[i];
+        if (isalnum(ch)) {
+            if (islower(ch)) {
+                ch = (ch - 'a' - key + 26) % 26 + 'a';
+            }
+            if (isupper(ch)) {
+                ch = (ch - 'A' - key + 26) % 26 + 'A';
+            }
+            if (isdigit(ch)) {
+                ch = (ch - '0' - key + 10) % 10 + '0';
+            }
+        } else {
+            printf("Invalid Message\\n");
+            return;
+        }
+        text[i] = ch;
+    }
+    printf("Decrypted message: %s\\n", text);
+}
 
 int main() {
-    char message[100], ch;
-    int i, key;
-    printf("Enter a message to encrypt: ");
-    gets(message);
-    printf("Enter key (1-25): ");
-    scanf("%d", &key);
-
-    // Encryption
-    for(i = 0; message[i] != '\\0'; ++i){
-        ch = message[i];
-        if(ch >= 'a' && ch <= 'z'){
-            ch = ch + key;
-            if(ch > 'z') ch = ch - 'z' + 'a' - 1;
-            message[i] = ch;
-        }
-        else if(ch >= 'A' && ch <= 'Z'){
-            ch = ch + key;
-            if(ch > 'Z') ch = ch - 'Z' + 'A' - 1;
-            message[i] = ch;
-        }
-    }
-    printf("Encrypted message: %s\\n", message);
-
-    // Decryption
-    for(i = 0; message[i] != '\\0'; ++i){
-        ch = message[i];
-        if(ch >= 'a' && ch <= 'z'){
-            ch = ch - key;
-            if(ch < 'a') ch = ch + 'z' - 'a' + 1;
-            message[i] = ch;
-        }
-        else if(ch >= 'A' && ch <= 'Z'){
-            ch = ch - key;
-            if(ch < 'A') ch = ch + 'Z' - 'A' + 1;
-            message[i] = ch;
-        }
-    }
-    printf("Decrypted message: %s\\n", message);
+    char text[500];
+    int key = 3;
+    
+    printf("Enter a message to encrypt/decrypt: ");
+    scanf("%s", text);
+    
+    encrypt(text, key);
+    decrypt(text, key);
+    
     return 0;
 }`,
-        output: `Enter a message to encrypt: HelloWorld
-Enter key (1-25): 4
-Encrypted message: LippsAsvph
+        output: `Enter a message to encrypt/decrypt: HelloWorld
+Encrypted message: KhoorZrug
 Decrypted message: HelloWorld`
       }]
     },
-    "exp7": {
-      title: "8. Leaky Bucket Algorithm",
-      parts: [{
-        code: `#include<stdio.h>
-
-int main() {
-    int bucket_size, output_rate;
-    int packets_rem = 0, i, n;
-    int packets[10];
-
-    printf("Enter bucket size: ");
-    scanf("%d", &bucket_size);
-    printf("Enter output rate: ");
-    scanf("%d", &output_rate);
-    printf("Enter number of incoming packets: ");
-    scanf("%d", &n);
-    printf("Enter incoming packet sizes:\\n");
-    for(i = 0; i < n; i++) scanf("%d", &packets[i]);
-
-    printf("\\nTime\\tPkt Size\\tPkt Rcvd\\tPkt Sent\\tPkt Rem\\n");
-    printf("----------------------------------------------------------\\n");
-
-    for(i = 0; i < n; i++) {
-        printf("%d\\t%d\\t\\t", i + 1, packets[i]);
-        if ((packets[i] + packets_rem) > bucket_size) {
-            printf("Dropped\\t\\t");
-        } else {
-            packets_rem += packets[i];
-            printf("%d\\t\\t", packets_rem);
-        }
-        int sent = (packets_rem < output_rate) ? packets_rem : output_rate;
-        printf("%d\\t\\t", sent);
-        packets_rem -= sent;
-        printf("%d\\n", packets_rem);
-    }
-    return 0;
-}`,
-        output: `Enter bucket size: 10
-Enter output rate: 2
-Enter number of incoming packets: 4
-Enter incoming packet sizes:
-4 5 3 6
-
-Time  Pkt Size  Pkt Rcvd  Pkt Sent  Pkt Rem
-----------------------------------------------------------
-1     4         4         2         2
-2     5         7         2         5
-3     3         8         2         6
-4     6         Dropped   2         4`
-      }]
-    },
     "exp8": {
-      title: "9. Buffer Sorting Techniques",
+      title: "8. Leaky Bucket Algorithm",
       parts: [{
         code: `#include <stdio.h>
 
-void bubble_sort(int buffer[], int n) {
-    int i, j, temp;
-    for (i = 0; i < n - 1; i++) {
-        for (j = 0; j < n - i - 1; j++) {
-            if (buffer[j] > buffer[j + 1]) {
-                temp = buffer[j];
-                buffer[j] = buffer[j + 1];
-                buffer[j + 1] = temp;
+void main() {
+    int arriv;
+    printf("enter the no of arrival \\n");
+    scanf("%d", &arriv);
+    
+    int t[arriv];
+    int packet[arriv];
+    
+    printf("enter the times \\n");
+    int i;
+    
+    for (i = 0; i < arriv; i++) {
+        printf("enter time t%d:", i + 1);
+        scanf("%d", &t[i]);
+        printf("enter packet p %d:", i + 1);
+        scanf("%d", &packet[i]);
+    }
+    
+    int ps = 20;
+    int or = 2;
+    int lo = 0;
+    int ct = 1;
+    
+    for (i = 0; i < arriv; i++) {
+        
+        while (ct < t[i]) {
+            printf("at time %d:no new packets arrived:", ct);
+            printf("packets send:%d\\n", (lo > or ? or : lo));
+            lo = lo - (lo > or ? or : lo);
+            ct++;
+        }
+        
+        int tp = packet[i] + lo;
+        int psent = (tp > or) ? or : tp;
+        lo = tp - psent;
+        
+        printf("at time %d:\\n", ct);
+        printf("packets received:%d\\n", packet[i]);
+        printf("packet sent:%d\\n", psent);
+        printf("packet left:%d\\n\\n", lo);
+        ct++;
+    }
+    
+    while (lo > 0) {
+        printf("at time %d :no new packets arrived\\n", ct);
+        int psent = (lo > or) ? or : lo;
+        lo = lo - psent;
+        printf("packet sent:%d\\n", psent);
+        printf("packet left:%d\\n\\n", lo);
+        ct++;
+    }
+}`,
+        output: `enter the no of arrival 
+4
+enter the times 
+enter time t1:1
+enter packet p 1:4
+enter time t2:2
+enter packet p 2:5
+enter time t3:3
+enter packet p 3:3
+enter time t4:4
+enter packet p 4:6
+at time 1:
+packets received:4
+packet sent:2
+packet left:2
+
+at time 2:
+packets received:5
+packet sent:2
+packet left:5
+
+at time 3:
+packets received:3
+packet sent:2
+packet left:6
+
+at time 4:
+packets received:6
+packet sent:2
+packet left:10
+
+at time 5 :no new packets arrived
+packet sent:2
+packet left:8
+
+at time 6 :no new packets arrived
+packet sent:2
+packet left:6
+
+at time 7 :no new packets arrived
+packet sent:2
+packet left:4
+
+at time 8 :no new packets arrived
+packet sent:2
+packet left:2
+
+at time 9 :no new packets arrived
+packet sent:2
+packet left:0`
+      }]
+    },
+    "exp9": {
+      title: "9. Buffer Sorting Techniques",
+      parts: [{
+        code: `#include <stdio.h>
+#include <string.h>
+#include <stdlib.h> 
+
+typedef struct {
+    char text[4]; 
+    int sequence; 
+} Frame;
+
+void printFrames(Frame frames[], int n) {
+    for (int i = 0; i < n; i++)
+        printf("%s:%d\\t", frames[i].text, frames[i].sequence);
+}
+
+void shuffle(Frame frames[], int n) {
+    for (int i = 0; i < n; i++) {
+        int j = rand() % n; 
+        Frame temp = frames[i];
+        frames[i] = frames[j];
+        frames[j] = temp;
+    }
+}
+
+void sortFrames(Frame frames[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (frames[j].sequence > frames[j + 1].sequence) {
+                Frame temp = frames[j];
+                frames[j] = frames[j + 1];
+                frames[j + 1] = temp;
             }
         }
     }
 }
 
 int main() {
-    int buffer[100], n, i;
-    printf("Enter number of packets in buffer (max 100): ");
-    scanf("%d", &n);
-    printf("Enter packet priorities (as integers):\\n");
-    for (i = 0; i < n; i++) scanf("%d", &buffer[i]);
-
-    bubble_sort(buffer, n);
-
-    printf("Sorted buffer (by priority):\\n");
-    for (i = 0; i < n; i++) printf("%d ", buffer[i]);
-    printf("\\n");
-
+    char sentence[100];
+    printf("Enter a sentence: ");
+    fgets(sentence, sizeof(sentence), stdin);
+    
+    sentence[strcspn(sentence, "\\n")] = '\\0';
+    
+    int len = strlen(sentence);
+    int frameLen = (len + 2) / 3;
+    Frame frames[frameLen];
+    
+    for (int i = 0; i < frameLen; i++) {
+        strncpy(frames[i].text, sentence + i * 3, 3);
+        frames[i].text[3] = '\\0'; 
+        frames[i].sequence = i + 1; 
+    }
+    
+    printf("\\nOriginal Frames:\\n");
+    printFrames(frames, frameLen);
+    
+    shuffle(frames, frameLen);
+    printf("\\nShuffled Frames:\\n");
+    printFrames(frames, frameLen);
+    
+    sortFrames(frames, frameLen);
+    printf("\\nSorted Frames:\\n");
+    printFrames(frames, frameLen);
+    
     return 0;
 }`,
-        output: `Enter number of packets in buffer (max 100): 6
-Enter packet priorities (as integers):
-5 2 8 1 9 4
-Sorted buffer (by priority):
-1 2 4 5 8 9`
+        output: `Enter a sentence: HelloWorld
+
+Original Frames:
+Hel:1	loW:2	orl:3	d:4	
+Shuffled Frames:
+orl:3	Hel:1	d:4	loW:2	
+Sorted Frames:
+Hel:1	loW:2	orl:3	d:4`
       }]
     },
-    "exp9": {
+    "exp10": {
       title: "10. Wireshark",
       parts: [{
         code: `// Wireshark is a graphical network protocol analyzer, not a C program.
@@ -642,7 +854,7 @@ Wireshark is a powerful open-source tool used for network troubleshooting, analy
         output: "This experiment involves using the Wireshark application. There is no direct code output. Follow the steps in the 'Code' section to perform the experiment."
       }]
     },
-    "exp10": {
+    "exp11": {
       title: "11. Nmap (OS Detection)",
       parts: [{
         code: `// Nmap (Network Mapper) is a command-line tool, not a C program.
@@ -661,7 +873,7 @@ Nmap is a free and open-source utility for network discovery and security auditi
         output: "This experiment involves using the Nmap command-line tool. There is no direct code output. Follow the steps in the 'Code' section to perform the experiment."
       }]
     },
-    "exp11": {
+    "exp12": {
       title: "12. NS2 Simulator",
       parts: [{
         code: `// NS2 (Network Simulator 2) is a discrete event simulator, not a single C program.
