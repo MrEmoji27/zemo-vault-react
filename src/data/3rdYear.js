@@ -257,81 +257,49 @@ Please enter the last Acknowledgement received.
           subtitle: "Selective Repeat",
           code: `#include <stdio.h>
 
-int main() {
-    int w, f, i, ack[50], frames[50];
+int main()
+{
+    int w, i, f, frames[50];
 
-    printf("Enter window size: ");
+    printf("Enter Window Size : ");
     scanf("%d", &w);
 
-    printf("Enter number of frames to transmit: ");
+    printf("\\nEnter the no. of frames to transmit : ");
     scanf("%d", &f);
 
-    printf("Enter %d frames: ", f);
+    printf("\\nEnter %d frames : ", f);
     for (i = 0; i < f; i++)
+    {
         scanf("%d", &frames[i]);
+    }
+
+    printf("\\nFrames will be sent in the following manner.\\n");
+    printf("After sending %d frames at each stage, the sender gets an acknowledgment from the receiver.\\n\\n", w);
 
     for (i = 0; i < f; i++)
-        ack[i] = 0;
+    {
+        printf("%d ", frames[i]);
 
-    printf("\\n--- Transmission using Selective Repeat ARQ ---\\n");
-
-    i = 0;
-    while (i < f) {
-        int j;
-        printf("\\nSender: Sending frames in window -> ");
-        for (j = i; j < i + w && j < f; j++) {
-            if (ack[j] == 0)
-                printf("%d ", frames[j]);
-        }
-        printf("\\n");
-
-        for (j = i; j < i + w && j < f; j++) {
-            if (ack[j] == 0) {
-                int response;
-                printf("Receiver: Did you receive frame %d? (1=Yes, 0=No): ", frames[j]);
-                scanf("%d", &response);
-                if (response == 1) {
-                    printf("Acknowledgement sent for frame %d\\n", frames[j]);
-                    ack[j] = 1;
-                } else {
-                    printf("Frame %d lost, will be retransmitted\\n", frames[j]);
-                }
-            }
-        }
-
-        while (i < f && ack[i] == 1) {
-            i++;
+        if (((i + 1) % w) == 0 || i == (f - 1))
+        {
+            printf("\\nAcknowledgement of the above frames is received by the sender\\n\\n");
         }
     }
 
-    printf("\\nAll frames transmitted successfully!\\n");
     return 0;
 }`,
-          output: `Enter window size: 3
-Enter number of frames to transmit: 5
-Enter 5 frames: 10 20 30 40 50
+          output: `Enter Window Size : 3
+Enter the no. of frames to transmit : 5
+Enter 5 frames : 10 20 30 40 50
 
---- Transmission using Selective Repeat ARQ ---
+Frames will be sent in the following manner.
+After sending 3 frames at each stage, the sender gets an acknowledgment from the receiver.
 
-Sender: Sending frames in window -> 10 20 30 
-Receiver: Did you receive frame 10? (1=Yes, 0=No): 1
-Acknowledgement sent for frame 10
-Receiver: Did you receive frame 20? (1=Yes, 0=No): 0
-Frame 20 lost, will be retransmitted
-Receiver: Did you receive frame 30? (1=Yes, 0=No): 1
-Acknowledgement sent for frame 30
+10 20 30 
+Acknowledgement of the above frames is received by the sender
 
-Sender: Sending frames in window -> 20 40 
-Receiver: Did you receive frame 20? (1=Yes, 0=No): 1
-Acknowledgement sent for frame 20
-Receiver: Did you receive frame 40? (1=Yes, 0=No): 1
-Acknowledgement sent for frame 40
-
-Sender: Sending frames in window -> 50 
-Receiver: Did you receive frame 50? (1=Yes, 0=No): 1
-Acknowledgement sent for frame 50
-
-All frames transmitted successfully!`
+40 50 
+Acknowledgement of the above frames is received by the sender`
         }
       ]
     },
