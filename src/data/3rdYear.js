@@ -13,46 +13,67 @@ int main()
     int i = 0, j = 0, n, pos;
     char a[20], b[50], ch;
 
-    printf("Enter string:\\n");
+    printf("enter string\\n");
     scanf("%s", a);
-
     n = strlen(a);
 
-    printf("Enter position to stuff the character:\\n");
+    printf("enter position\\n");
     scanf("%d", &pos);
 
-    if (pos > n || pos <= 0)
+    while (pos > n || pos <= 0)
     {
-        printf("Invalid position.\\n");
-        return 1; // Exit if position is invalid
+        printf("invalid position, Enter again : ");
+        scanf("%d", &pos);
     }
 
-    printf("Enter the character to stuff:\\n");
+    printf("enter the character\\n");
     scanf(" %c", &ch);
 
-    // Copy characters before the stuffing position
-    for(i = 0; i < pos - 1; i++) {
-        b[j++] = a[i];
+    b[0] = 'd';
+    b[1] = 'l';
+    b[2] = 'e';
+    b[3] = 's';
+    b[4] = 't';
+    b[5] = 'x';
+    j = 6;
+
+    while (i < n)
+    {
+        if (i == pos - 1)
+        {
+            b[j]   = 'd';
+            b[j+1] = 'l';
+            b[j+2] = 'e';
+            b[j+3] = ch;
+            b[j+4] = 'd';
+            b[j+5] = 'l';
+            b[j+6] = 'e';
+            j = j + 7;
+        }
+
+        if (a[i] == 'd' && a[i+1] == 'l' && a[i+2] == 'e')
+        {
+            b[j]   = 'd';
+            b[j+1] = 'l';
+            b[j+2] = 'e';
+            j = j + 3;
+        }
+
+        b[j] = a[i];
+        i++;
+        j++;
     }
 
-    // Add the stuffing sequence
-    b[j++] = 'd';
-    b[j++] = 'l';
-    b[j++] = 'e';
-    b[j++] = ch;
-    b[j++] = 'd';
-    b[j++] = 'l';
-    b[j++] = 'e';
+    b[j]   = 'd';
+    b[j+1] = 'l';
+    b[j+2] = 'e';
+    b[j+3] = 'e';
+    b[j+4] = 't';
+    b[j+5] = 'x';
+    b[j+6] = '\\0';
 
-    // Copy the rest of the string
-    for(i = pos - 1; i < n; i++) {
-        b[j++] = a[i];
-    }
-
-    b[j] = '\\0';
-
-    printf("\\nString after character stuffing:\\n");
-    printf("%s\\n", b);
+    printf("\\nframe after stuffing:\\n");
+    printf("%s", b);
 
     return 0;
 }`,
