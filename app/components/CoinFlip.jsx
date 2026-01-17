@@ -142,10 +142,11 @@ export default function CoinFlip() {
         
         @media (max-width: 768px) {
           .coin-container {
-            bottom: 1.5rem;
-            left: 1.5rem;
-            width: 70px;
-            height: 70px;
+            bottom: 8rem;
+            left: auto;
+            right: 1rem;
+            width: 60px;
+            height: 60px;
           }
         }
 
