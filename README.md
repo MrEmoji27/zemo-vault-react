@@ -1,160 +1,106 @@
-# Zemo's Vault - React Version
+# 🎮 Zemo's Vault
 
-A modern React + Tailwind CSS web application converted from the original HTML version. This application provides a cyberpunk-themed interface for browsing computer science lab experiments and code examples.
+A cyberpunk-themed lab experiment repository with a built-in arcade. Browse 48+ computer science experiments with syntax highlighting and play 12 classic games.
 
-## Features
+![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
+![React](https://img.shields.io/badge/React-19-blue?logo=react)
+![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8?logo=tailwindcss)
 
-- 🎨 **Cyberpunk Design**: Dark theme with neon green accents and glitch effects
-- 🌙 **Theme Toggle**: Switch between dark and light modes
-- ✨ **Particle Animation**: Dynamic background with animated particles
-- 📱 **Responsive Design**: Works on desktop and mobile devices
-- 🎯 **Interactive UI**: Smooth animations and hover effects
-- 💻 **Code Highlighting**: Syntax highlighting for C code examples
-- 🔍 **Easy Navigation**: Hierarchical selection (Year → Subject → Experiment)
+## ✨ Features
 
-## Technologies Used
+### Lab Vault
+- 📚 **48 Lab Experiments** across 5 subjects (AI, Computer Networks, DevOps, IOT, ML)
+- 🎨 **Syntax Highlighting** with react-syntax-highlighter
+- 📁 **File-System Based** - Just drop code files to add experiments
+- 🔍 **Easy Navigation** - Year → Subject → Experiment hierarchy
 
-- **React 18** - Modern React with hooks
-- **Tailwind CSS** - Utility-first CSS framework
-- **Vite** - Fast build tool and development server
-- **React Syntax Highlighter** - Code syntax highlighting
-- **Prism.js** - Code highlighting themes
+### Arcade
+- 🎮 **12 Games**: Tic-Tac-Toe, 2048, Snake, Tetris, Pong, Breakout, Space Invaders, Flappy Bird, Chess (with Stockfish AI), Doom, Fruit Ninja, Coin Flip
+- 🎯 **PrimeReact Carousel** for game selection
+- 📱 **Mobile Touch Controls** for all games
 
-## Project Structure
+### UI/UX
+- 🌙 **Glassmorphism Design** with neon green accents
+- ✨ **Pixel Trail** mouse effect
+- 📱 **Fully Responsive** - Works on all devices
+- 🎭 **ASCII Art Header** with glitch effects
 
-```
-zemo-vault-react/
-├── src/
-│   ├── components/
-│   │   ├── Header.jsx          # Main header with title and theme toggle
-│   │   ├── Selector.jsx        # Year/Subject/Experiment selection
-│   │   ├── CodeDisplay.jsx     # Code and output display
-│   │   └── ParticleBackground.jsx # Animated particle background
-│   ├── data/
-│   │   └── labData.js         # Lab experiment data
-│   ├── App.jsx                # Main application component
-│   ├── main.jsx              # React entry point
-│   └── index.css             # Global styles and Tailwind imports
-├── index.html                # HTML template
-├── tailwind.config.js       # Tailwind configuration
-├── postcss.config.js        # PostCSS configuration
-└── package.json             # Dependencies and scripts
+## 🚀 Quick Start
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Open http://localhost:3000
 ```
 
-## Getting Started
+## 📁 Project Structure
 
-### Prerequisites
-
-- Node.js (version 16 or higher)
-- npm or yarn
-
-### Installation
-
-1. Navigate to the project directory:
-   ```bash
-   cd zemo-vault-react
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-4. Open your browser and visit `http://localhost:5173`
-
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-
-## Features Breakdown
-
-### Theme System
-- Automatic theme persistence using localStorage
-- Smooth transitions between dark and light modes
-- Cyberpunk green color scheme in dark mode
-- Clean, professional look in light mode
-
-### Particle Background
-- Canvas-based particle animation
-- Particles with random movement and opacity
-- Connection lines between nearby particles
-- Responsive to window resizing
-
-### Code Display
-- Syntax highlighting for C code
-- Tabbed interface for multi-part experiments
-- Copy-friendly code blocks
-- Formatted output display
-
-### Responsive Design
-- Mobile-first approach
-- Flexible grid layouts
-- Touch-friendly interface elements
-- Optimized for various screen sizes
-
-## Data Structure
-
-The application uses a hierarchical data structure:
-
-```javascript
-{
-  "Year": {
-    "Subject": {
-      "experiment": {
-        title: "Experiment Title",
-        parts: [
-          {
-            subtitle: "Part Title",
-            code: "C code here",
-            output: "Expected output"
-          }
-        ]
-      }
-    }
-  }
-}
+```
+app/
+├── components/      # React components (games, UI)
+├── labs/           # Lab experiments (file-based)
+│   └── 3rd Year/
+│       ├── AI/
+│       ├── Computer Networks/
+│       ├── DevOps/
+│       ├── IOT/
+│       └── ML/
+├── hooks/          # Custom hooks (useStockfish)
+├── actions/        # Server actions (getExperiments)
+├── page.jsx        # Main app
+└── globals.css     # All styles
 ```
 
-## Customization
+## 🎮 Games Included
 
-### Colors
-The cyberpunk theme uses these main colors:
-- Primary: `#00ff8c` (cyberpunk green)
-- Background: `#0c0c0c` (dark background)
-- Text: `#e0e0e0` (light text)
+| Game | Controls |
+|------|----------|
+| Chess | Click to move, Stockfish AI opponent |
+| 2048 | Arrow keys / Swipe |
+| Snake | Arrow keys / WASD |
+| Tetris | Arrow keys |
+| Pong | W/S keys |
+| Space Invaders | Arrows + Space |
+| Flappy Bird | Space / Click |
+| Breakout | Arrows |
 
-### Fonts
-- **Title**: Bungee (cyberpunk style)
-- **Body**: Roboto Mono (monospace)
-- **Code**: Fira Code (programming font)
+## 🛠 Tech Stack
 
-## Browser Support
+- **Framework**: Next.js 15
+- **UI**: React 19, Tailwind CSS
+- **Components**: PrimeReact Carousel
+- **Syntax**: react-syntax-highlighter + Prism
+- **Chess AI**: Stockfish WebAssembly
+- **Fonts**: Bungee, Fira Code
 
-- Chrome (recommended)
-- Firefox
-- Safari
-- Edge
+## 📊 Stats
 
-## Contributing
+- **Lines of Code**: 16,000+
+- **Components**: 28
+- **Lab Experiments**: 48
+- **Arcade Games**: 12
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+## 📱 Mobile Support
 
-## License
+- Responsive layouts for all screen sizes
+- Touch controls for arcade games
+- Horizontal scrolling game carousel
+- Touch-friendly tap targets
 
-This project is open source and available under the MIT License.
+## 🎨 Theme
 
-## Original HTML Version
+- **Primary**: `#00ff8c` (Neon Green)
+- **Background**: `#0c0c0c` (Dark)
+- **Accent**: `#6366f1` (Indigo)
 
-This React version was converted from the original HTML file (`z-5-ultimate.html`) while maintaining all functionality and improving the user experience with modern React patterns and Tailwind CSS styling.
+## 📄 License
+
+MIT License - Use freely!
+
+---
+
+Made with 💚 by MrEmoji27
