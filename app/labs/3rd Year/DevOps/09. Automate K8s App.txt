@@ -1,0 +1,24 @@
+### 1. Create a Service Configuration (service.yaml)
+// // A Service provides a stable network endpoint for your pods.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-node-app-service
+spec:
+  selector:
+    app: my-node-app
+  ports:
+    - protocol: TCP
+      port: 80 # The port the service is available on
+      targetPort: 3000 # The port the container is listening on
+  type: NodePort # Exposes the service on the node's IP at a static port
+
+// ### 2. Apply the Service
+> kubectl apply -f service.yaml
+
+// ### 3. Access the Application
+// // If using Minikube, run this command to get the URL:
+> minikube service my-node-app-service
+
+// // This will automatically open the URL in your browser. Kubernetes handles routing traffic to one of the 3 running pods.

@@ -1,0 +1,42 @@
+### Prerequisites:
+- A Jenkins server (from Ex. 4).
+- A GitHub repository with a simple project (like the one from Ex. 3).
+
+### Steps:
+1.  **Create a New Job:**
+    - In Jenkins, click 'New Item'.
+    - Enter a name (e.g., 'my-first-pipeline').
+    - Select 'Pipeline' and click OK.
+
+2.  **Configure the Pipeline:**
+    - Scroll down to the 'Pipeline' section.
+    - For 'Definition', select 'Pipeline script'.
+    - Paste the following simple script into the text area:
+
+    pipeline {
+        agent any
+        stages {
+            stage('Build') {
+                steps {
+                    echo 'Building the application...'
+                    // In a real project, you'd run build commands here
+                    // e.g., sh 'npm install'
+                }
+            }
+            stage('Test') {
+                steps {
+                    echo 'Running tests...'
+                    // In a real project, you'd run test commands here
+                    // e.g., sh 'npm test'
+                }
+            }
+        }
+    }
+
+3.  **Run the Pipeline:**
+    - Click 'Save'.
+    - On the job's page, click 'Build Now'.
+
+4.  **Check the Output:**
+    - A new build will appear in the 'Build History'.
+    - Click on it, then click 'Console Output' to see the 'echo' messages from your pipeline stages.

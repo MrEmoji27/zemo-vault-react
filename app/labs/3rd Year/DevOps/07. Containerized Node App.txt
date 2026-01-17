@@ -1,0 +1,30 @@
+### 1. Create the Application (app.js)
+// Save this code in a file named 'app.js'
+const http = require('http');
+const port = 3000;
+
+const server = http.createServer((req, res) => {
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/plain');
+  res.end('Hello from inside a Docker container!\\n');
+});
+
+server.listen(port, () => {
+  console.log(\`Server running at http://localhost:\${port}/\`);
+});
+
+// ### 2. Create the Dockerfile
+// // In the same folder, create a file named 'Dockerfile' (no extension)
+FROM node:18-alpine
+WORKDIR /app
+COPY app.js .
+CMD ["node", "app.js"]
+
+// ### 3. Build and Run the Container
+// // Open your terminal in the folder and run:
+
+// // Build the image
+> docker build -t my-node-app .
+
+// // Run the container, mapping port 8080 on your machine to port 3000 in the container
+> docker run -p 8080:3000 my-node-app

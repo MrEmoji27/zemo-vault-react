@@ -1,0 +1,19 @@
+### Installation using Docker (Recommended for beginners):
+1.  **Prerequisite:** Install Docker on your machine.
+2.  **Run Jenkins Container:** Open your terminal and run the following command:
+    > docker run -p 8080:8080 -p 50000:50000 --name jenkins-server -d jenkins/jenkins:lts
+
+3.  **Get Initial Admin Password:** Jenkins will generate a password. To view it, run:
+    > docker exec jenkins-server cat /var/jenkins_home/secrets/initialAdminPassword
+
+4.  **Setup Wizard:**
+    - Open your browser and go to http://localhost:8080.
+    - Paste the password you retrieved.
+    - Click 'Install suggested plugins'.
+    - Create your first admin user.
+
+### Exploring the Environment:
+- **Dashboard:** The main page where you see your projects (jobs).
+- **Manage Jenkins:** The section for configuring system settings, plugins, and security.
+- **New Item:** Where you create a new project or pipeline.
+- **Build History:** Shows the status of past builds for a job.

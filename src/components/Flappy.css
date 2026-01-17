@@ -1,7 +1,0 @@
-.flappy-root{ text-align:center; padding:16px; }
-.flappy-canvas{ border-radius:12px; background: radial-gradient(900px 600px at 30% 20%, rgba(255,119,233,0.06), rgba(155,93,229,0.05) 45%, rgba(0,0,0,0.65) 70%); border:1px solid rgba(255,119,233,0.18); box-shadow: 0 0 30px rgba(255,119,233,0.05), inset 0 0 18px rgba(0,255,140,0.05); }
-.flappy-root { position: relative; }
-.flappy-canvas { display:block; border-radius:12px; }
-.flappy-catcher {
-  position:absolute; inset:0; background:transparent; border:0; padding:0; margin:0; cursor:pointer; z-index: 0;
-}

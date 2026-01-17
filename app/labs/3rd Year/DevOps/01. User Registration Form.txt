@@ -1,0 +1,14 @@
+### Objective:
+Create a basic HTML page with a form for event registration.
+
+### Steps:
+1.  **Create an HTML file:** Name it 'index.html'.
+2.  **Add basic HTML structure:** Include <html>, <head>, and <body> tags.
+3.  **Create a <form> element:** Inside the body, this will contain your input fields.
+4.  **Add input fields:**
+    - A text input for 'Name' (<input type="text">).
+    - An email input for 'Email' (<input type="email">).
+    - A dropdown for 'Event' (<select> with <option> elements).
+    - A submit button (<input type="submit">).
+5.  **Use <label> tags:** Associate labels with each input for good practice.
+6.  **(Optional) Add JavaScript:** Write a script to show an alert when the form is submitted, preventing the page from reloading.

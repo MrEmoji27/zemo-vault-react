@@ -1,0 +1,39 @@
+### 1. Initializing a Repository
+// Create a new local repository
+> git init
+
+// Clone an existing repository from GitHub
+> git clone <repository_url>
+
+### 2. Staging and Committing
+// Add a file to the staging area
+> git add <file_name>
+
+// Add all changed files to the staging area
+> git add .
+
+// Commit the staged files with a message
+> git commit -m "Your commit message"
+
+### 3. Branching and Merging
+// Create a new branch
+> git branch <branch_name>
+
+// Switch to a branch
+> git checkout <branch_name>
+
+// Create and switch to a new branch in one command
+> git checkout -b <new_branch_name>
+
+// Merge a branch into your current branch
+> git merge <branch_name>
+
+### 4. Syncing with GitHub
+// Add a remote repository (like GitHub)
+> git remote add origin <repository_url>
+
+// Push your committed changes to the remote repository
+> git push origin <branch_name>
+
+// Pull changes from the remote repository
+> git pull origin <branch_name>

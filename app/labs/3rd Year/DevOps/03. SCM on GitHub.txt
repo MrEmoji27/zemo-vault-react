@@ -1,0 +1,37 @@
+### Steps:
+1.  **Create a GitHub Repository:**
+    - Go to GitHub.com and create a new public repository. Let's call it 'event-registration-app'.
+
+2.  **Initialize Git Locally:**
+    - Create a folder on your computer.
+    - Save the HTML code from Exercise 1 as 'index.html' inside this folder.
+    - Open your terminal in this folder and run:
+      > git init
+
+3.  **First Commit:**
+    - Add and commit the file:
+      > git add index.html
+      > git commit -m "Initial commit: Add registration form"
+
+4.  **Connect to GitHub and Push:**
+    - Link your local repo to GitHub and push the code:
+      > git remote add origin <your_repository_url>
+      > git push -u origin master
+
+5.  **Create a Feature Branch:**
+    - Let's add a new feature (e.g., a phone number field).
+      > git checkout -b add-phone-field
+
+6.  **Modify and Commit on the New Branch:**
+    - Edit 'index.html' to add the phone number field.
+    - Commit the change:
+      > git add index.html
+      > git commit -m "Feat: Add phone number input"
+
+7.  **Push the Branch and Create a Pull Request:**
+    - Push the new branch to GitHub:
+      > git push origin add-phone-field
+    - Go to your repository on GitHub. You will see a prompt to create a Pull Request. Create it.
+
+8.  **Merge the Pull Request:**
+    - On the GitHub page for the Pull Request, click 'Merge pull request'.

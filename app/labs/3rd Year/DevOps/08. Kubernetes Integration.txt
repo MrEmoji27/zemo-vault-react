@@ -1,0 +1,31 @@
+### 1. Create a Deployment Configuration (deployment.yaml)
+// // This file tells Kubernetes how to run your container.
+// // It uses the image 'my-node-app' we built in Ex. 7.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-node-app-deployment
+spec:
+  replicas: 3 # Run 3 instances of our app
+  selector:
+    matchLabels:
+      app: my-node-app
+  template:
+    metadata:
+      labels:
+        app: my-node-app
+    spec:
+      containers:
+      - name: my-node-app-container
+        image: my-node-app
+        ports:
+        - containerPort: 3000
+
+// ### 2. Apply the Deployment
+// // Prerequisite: A running Kubernetes cluster (like Minikube or Docker Desktop's Kubernetes).
+> kubectl apply -f deployment.yaml
+
+// ### 3. Check the Status
+// // See the pods (running instances of your app)
+> kubectl get pods

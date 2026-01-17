@@ -1,0 +1,21 @@
+### 1. Selenium WebDriver
+This is the core of Selenium. It's a library you use in a programming language (like JavaScript, Python, Java) to write scripts that control a browser.
+
+### 2. Language Bindings
+You need to install the Selenium library for your chosen language.
+// For JavaScript (Node.js)
+> npm install selenium-webdriver
+
+### 3. Browser Driver
+Selenium needs a specific driver to control a browser. For Chrome, you need ChromeDriver.
+- Download ChromeDriver from its official website.
+- Make sure the downloaded 'chromedriver' executable is in your system's PATH.
+
+### Exploration:
+- The primary way to use Selenium is by writing code.
+- You can write scripts to:
+  - Open a URL.
+  - Find HTML elements (by ID, class, etc.).
+  - Click buttons and links.
+  - Type text into input fields.
+  - Assert that certain text or elements are present on the page.

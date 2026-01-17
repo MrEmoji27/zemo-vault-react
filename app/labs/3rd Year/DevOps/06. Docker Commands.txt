@@ -1,0 +1,33 @@
+### 1. Managing Images
+// List all Docker images on your machine
+> docker images
+
+// Pull an image from Docker Hub (e.g., the lightweight Alpine Linux)
+> docker pull alpine
+
+// Remove a Docker image
+> docker rmi alpine
+
+### 2. Running Containers
+// Run a container from an image and get an interactive terminal
+> docker run -it alpine sh
+
+// Run a container in the background (detached mode)
+> docker run -d --name my-nginx nginx
+
+### 3. Managing Containers
+// List all running containers
+> docker ps
+
+// List all containers (running and stopped)
+> docker ps -a
+
+// Stop a running container
+> docker stop my-nginx
+
+// Remove a stopped container
+> docker rm my-nginx
+
+### 4. Viewing Logs
+// View the logs of a running container
+> docker logs my-nginx

@@ -1,0 +1,65 @@
+.flappy-root {
+  text-align: center;
+  padding: 16px;
+  position: relative;
+}
+
+.flappy-canvas {
+  display: block;
+  border-radius: 12px;
+  background: radial-gradient(900px 600px at 30% 20%, rgba(0, 255, 140, 0.08), rgba(0, 200, 120, 0.06) 45%, rgba(0, 0, 0, 0.7) 70%);
+  border: 1px solid rgba(0, 255, 140, 0.25);
+  box-shadow:
+    0 0 30px rgba(0, 255, 140, 0.15),
+    inset 0 0 18px rgba(0, 255, 140, 0.08);
+}
+
+.flappy-catcher {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  z-index: 0;
+}
+
+/* Score pop animation */
+.score-pop .hud-value {
+  animation: scorePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes scorePop {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.3);
+    text-shadow:
+      0 0 20px rgba(0, 255, 140, 1),
+      0 0 40px rgba(0, 255, 140, 0.6);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Enhanced overlay transitions */
+.game-overlay {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
