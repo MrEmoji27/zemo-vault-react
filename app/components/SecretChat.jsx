@@ -29,16 +29,22 @@ export default function SecretChat({ open, onClose }) {
   const url = useMemo(() => {
     // Next.js uses process.env, not import.meta.env
     // For client-side env vars in Next.js, prefix with NEXT_PUBLIC_
-    const port = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_CHAT_PORT) || 6769;
-    const host = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_CHAT_HOST) || 'localhost';
-    const isProd = (typeof process !== 'undefined' && process.env.NODE_ENV === 'production');
+    const chatHost = process.env.NEXT_PUBLIC_CHAT_HOST;
+    const chatPort = process.env.NEXT_PUBLIC_CHAT_PORT || '6769';
+    const isProd = process.env.NODE_ENV === 'production';
 
-    if (isProd) {
-      return `wss://${host}`;
+    if (isProd && chatHost) {
+      // Production: connect to Render WebSocket server
+      return `wss://${chatHost}`;
+    } else if (chatHost) {
+      // Custom host specified (can be used for staging/testing)
+      return `wss://${chatHost}`;
     } else {
-      return `ws://${host}:${port}`;
+      // Development: connect to local WebSocket server
+      return `ws://localhost:${chatPort}`;
     }
   }, []);
+
 
   useEffect(() => {
     if (!open) return;
