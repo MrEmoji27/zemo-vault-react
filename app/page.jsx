@@ -624,7 +624,6 @@ function App() {
             {/* 3D Coin Flip Widget */}
             <CoinFlip />
 
-            <SecretChat open={secretOpen} onClose={() => setSecretOpen(false)} />
             <button
               className="neon-button-green"
               onClick={closeArcade}

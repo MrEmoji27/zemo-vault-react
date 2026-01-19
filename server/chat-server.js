@@ -1,7 +1,7 @@
 import { WebSocketServer } from 'ws';
 
 const PORT = Number(process.env.PORT) || 6769;
-const CHAT_PASSWORD = process.env.CHAT_PASSWORD || 'Alonso@2005';
+const CHAT_PASSWORD = process.env.CHAT_PASSWORD || 'ALONSO@2005';
 
 const wss = new WebSocketServer({ port: PORT });
 
@@ -9,7 +9,7 @@ function broadcast(data, except = null) {
   const msg = JSON.stringify(data);
   for (const client of wss.clients) {
     if (client.readyState === 1 && client !== except && client.authed) {
-      try { client.send(msg); } catch {}
+      try { client.send(msg); } catch { }
     }
   }
 }
@@ -32,7 +32,7 @@ wss.on('connection', (ws) => {
           ws.send(JSON.stringify({ type: 'authed' }));
         } else {
           ws.send(JSON.stringify({ type: 'error', error: 'bad_password' }));
-          try { ws.close(4001, 'bad_password'); } catch {}
+          try { ws.close(4001, 'bad_password'); } catch { }
         }
       }
       return;
@@ -63,9 +63,9 @@ wss.on('connection', (ws) => {
 // heartbeat
 const interval = setInterval(() => {
   for (const ws of wss.clients) {
-    if (ws.isAlive === false) { try { ws.terminate(); } catch {}; continue; }
+    if (ws.isAlive === false) { try { ws.terminate(); } catch { }; continue; }
     ws.isAlive = false;
-    try { ws.ping(); } catch {}
+    try { ws.ping(); } catch { }
   }
 }, 30000);
 

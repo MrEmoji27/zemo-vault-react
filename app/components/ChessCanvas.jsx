@@ -6,10 +6,10 @@ import { useStockfish } from '../hooks/useStockfish';
 
 // Neon Theme Colors
 const COLORS = {
-    board: 'transparent', // Let CSS background show through
+    board: 'transparent',
     grid: 'rgba(0, 255, 140, 0.2)',
-    whitePiece: '#00ff8c',   // Neon Green
-    blackPiece: '#ff3333',   // Neon Red
+    whitePiece: '#00ff8c',
+    blackPiece: '#ff3333',
     moveHighlight: 'rgba(0, 255, 140, 0.3)',
     captureHighlight: 'rgba(255, 51, 51, 0.4)',
     checkHighlight: 'rgba(255, 64, 64, 0.6)'
@@ -21,7 +21,7 @@ const PIECE_UNICODE = {
 
 const ChessCanvas = () => {
     const canvasRef = useRef(null);
-    const [game, setGame] = useState(new Chess());
+    const [game, setGame] = useState(() => new Chess());
     const [difficulty, setDifficulty] = useState('intermediate');
     const [status, setStatus] = useState('White to move');
 
@@ -31,14 +31,24 @@ const ChessCanvas = () => {
     // Visual State
     const [selectedSquare, setSelectedSquare] = useState(null);
     const [legalMoves, setLegalMoves] = useState([]);
-    const [particles, setParticles] = useState([]);
+
+    // Refs for stable animation loop - avoids restarts on state changes
+    const gameRef = useRef(game);
+    const selectedSquareRef = useRef(selectedSquare);
+    const legalMovesRef = useRef(legalMoves);
+    const particlesRef = useRef([]);
 
     // Board Metrics
     const BOARD_SIZE = 600;
     const SQUARE_SIZE = BOARD_SIZE / 8;
 
-    // History State for Redo (use state for reactivity)
+    // History State for Redo
     const [undoneMoves, setUndoneMoves] = useState([]);
+
+    // Keep refs in sync with state
+    useEffect(() => { gameRef.current = game; }, [game]);
+    useEffect(() => { selectedSquareRef.current = selectedSquare; }, [selectedSquare]);
+    useEffect(() => { legalMovesRef.current = legalMoves; }, [legalMoves]);
 
     // --- Engine Interaction ---
 
@@ -50,27 +60,25 @@ const ChessCanvas = () => {
             const promotion = bestMove.length > 4 ? bestMove.substring(4, 5) : undefined;
 
             try {
-                const move = game.move({ from, to, promotion: promotion || 'q' });
+                const currentGame = gameRef.current;
+                const move = currentGame.move({ from, to, promotion: promotion || 'q' });
                 if (move) {
-                    // Clear redo history on new move
                     setUndoneMoves([]);
-
-                    // Create particles for capture
+                    
+                    // Minimal particle effect for AI capture
                     if (move.captured) {
-                        createExplosion(
-                            (move.to.charCodeAt(0) - 97) * SQUARE_SIZE + SQUARE_SIZE / 2,
-                            (8 - parseInt(move.to[1])) * SQUARE_SIZE + SQUARE_SIZE / 2,
-                            COLORS.whitePiece,
-                            30 // More particles for AI capture
-                        );
+                        const x = (move.to.charCodeAt(0) - 97) * SQUARE_SIZE + SQUARE_SIZE / 2;
+                        const y = (8 - parseInt(move.to[1])) * SQUARE_SIZE + SQUARE_SIZE / 2;
+                        createExplosion(x, y, COLORS.whitePiece, 8);
                     }
-                    setGame(new Chess(game.fen())); // Trigger re-render
+                    
+                    setGame(new Chess(currentGame.fen()));
                 }
             } catch (e) {
                 console.error("Invalid engine move:", bestMove);
             }
         }
-    }, [bestMove]); // game dependency removed to avoid loops, relying on setGame
+    }, [bestMove]);
 
     // Effect: Request AI Move when it's Black's turn
     useEffect(() => {
@@ -81,83 +89,64 @@ const ChessCanvas = () => {
     }, [game, isThinking, requestMove]);
 
     const updateStatus = () => {
-        if (game.isGameOver()) {
-            if (game.isCheckmate()) setStatus(`Checkmate! ${game.turn() === 'w' ? 'Black' : 'White'} wins`);
-            else if (game.isDraw()) setStatus('Draw!');
+        const currentGame = gameRef.current;
+        if (currentGame.isGameOver()) {
+            if (currentGame.isCheckmate()) setStatus(`Checkmate! ${currentGame.turn() === 'w' ? 'Black' : 'White'} wins`);
+            else if (currentGame.isDraw()) setStatus('Draw!');
             else setStatus('Game Over');
         } else {
-            setStatus(game.turn() === 'w' ? 'Your Turn' : 'AI Thinking...');
+            setStatus(currentGame.turn() === 'w' ? 'Your Turn' : 'AI Thinking...');
         }
     };
 
-    // --- Particle System ---
-    const createExplosion = (x, y, color, count = 20) => {
+    // --- Minimal Particle System ---
+    const createExplosion = useCallback((x, y, color, count = 8) => {
         const newParticles = [];
         for (let i = 0; i < count; i++) {
-            const speed = Math.random() * 4 + 2;
+            const speed = Math.random() * 3 + 1;
             const angle = Math.random() * Math.PI * 2;
             newParticles.push({
                 x, y,
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed,
-                life: 1.0,
+                life: 0.8,
                 color: color,
-                decay: 0.02 + Math.random() * 0.03
+                decay: 0.04 + Math.random() * 0.02
             });
         }
-        setParticles(prev => [...prev, ...newParticles]);
-    };
+        particlesRef.current = [...particlesRef.current, ...newParticles];
+    }, []);
 
-    const createMoveTrail = (fromX, fromY, toX, toY, color) => {
-        const dist = Math.sqrt(Math.pow(toX - fromX, 2) + Math.pow(toY - fromY, 2));
-        const steps = dist / 20; // Particle every 20px
-        const newParticles = [];
-
-        for (let i = 0; i < steps; i++) {
-            const t = i / steps;
-            newParticles.push({
-                x: fromX + (toX - fromX) * t,
-                y: fromY + (toY - fromY) * t + (Math.random() - 0.5) * 10,
-                vx: (Math.random() - 0.5) * 1,
-                vy: (Math.random() - 0.5) * 1,
-                life: 0.6,
-                color: color,
-                decay: 0.05
-            });
-        }
-        setParticles(prev => [...prev, ...newParticles]);
-    };
-
-    // Animation Loop
+    // --- Stable Animation Loop ---
     useEffect(() => {
         const canvas = canvasRef.current;
         const ctx = canvas?.getContext('2d');
+        if (!ctx) return;
+
         let animationId;
+        let running = true;
 
         const render = () => {
-            if (!ctx) return;
+            if (!running) return;
 
-            // Clear
-            // Clear
+            // Read current state from refs (stable, no effect restarts)
+            const currentGame = gameRef.current;
+            const currentSelected = selectedSquareRef.current;
+            const currentLegal = legalMovesRef.current;
+
+            // Clear canvas
             ctx.clearRect(0, 0, BOARD_SIZE, BOARD_SIZE);
-            // Optional: Slight tint if needed, but relies on CSS for glass
-            // ctx.fillStyle = 'rgba(10, 10, 31, 0.3)';
-            // ctx.fillRect(0, 0, BOARD_SIZE, BOARD_SIZE);
 
             // Draw Glass Checkerboard
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
                     const isDark = (r + c) % 2 === 1;
-                    if (isDark) {
-                        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; // Dark glass squares
-                    } else {
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'; // Light glass squares
-                    }
+                    ctx.fillStyle = isDark ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.05)';
                     ctx.fillRect(c * SQUARE_SIZE, r * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
                 }
             }
 
-            // Draw Grid Lines (Subtle overlay)
+            // Draw Grid Lines
             ctx.lineWidth = 1;
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
             for (let i = 0; i <= 8; i++) {
@@ -172,15 +161,16 @@ const ChessCanvas = () => {
                 ctx.stroke();
             }
 
-            // Draw Highlights
-            if (selectedSquare) {
-                const x = (selectedSquare.charCodeAt(0) - 97) * SQUARE_SIZE;
-                const y = (8 - parseInt(selectedSquare[1])) * SQUARE_SIZE;
+            // Draw Selection Highlight
+            if (currentSelected) {
+                const x = (currentSelected.charCodeAt(0) - 97) * SQUARE_SIZE;
+                const y = (8 - parseInt(currentSelected[1])) * SQUARE_SIZE;
                 ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
                 ctx.fillRect(x, y, SQUARE_SIZE, SQUARE_SIZE);
             }
 
-            legalMoves.forEach(move => {
+            // Draw Legal Moves
+            currentLegal.forEach(move => {
                 const x = (move.to.charCodeAt(0) - 97) * SQUARE_SIZE;
                 const y = (8 - parseInt(move.to[1])) * SQUARE_SIZE;
 
@@ -196,13 +186,13 @@ const ChessCanvas = () => {
             });
 
             // Draw Check Highlight
-            if (game.inCheck()) {
-                const board = game.board();
+            if (currentGame.inCheck()) {
+                const board = currentGame.board();
                 for (let r = 0; r < 8; r++) {
                     for (let c = 0; c < 8; c++) {
                         const p = board[r][c];
-                        if (p && p.type === 'k' && p.color === game.turn()) {
-                            ctx.shadowBlur = 30;
+                        if (p && p.type === 'k' && p.color === currentGame.turn()) {
+                            ctx.shadowBlur = 20;
                             ctx.shadowColor = 'red';
                             ctx.fillStyle = COLORS.checkHighlight;
                             ctx.beginPath();
@@ -215,7 +205,7 @@ const ChessCanvas = () => {
             }
 
             // Draw Pieces
-            const board = game.board();
+            const board = currentGame.board();
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.font = `${SQUARE_SIZE * 0.7}px Arial`;
@@ -228,7 +218,7 @@ const ChessCanvas = () => {
                         const y = r * SQUARE_SIZE + SQUARE_SIZE / 2;
 
                         ctx.fillStyle = piece.color === 'w' ? COLORS.whitePiece : COLORS.blackPiece;
-                        ctx.shadowBlur = 15;
+                        ctx.shadowBlur = 12;
                         ctx.shadowColor = ctx.fillStyle;
                         ctx.fillText(PIECE_UNICODE[piece.type], x, y);
                         ctx.shadowBlur = 0;
@@ -236,41 +226,53 @@ const ChessCanvas = () => {
                 }
             }
 
-            // Draw Particles
+            // Draw and Update Particles (in-place, no setState)
+            const particles = particlesRef.current;
             if (particles.length > 0) {
-                setParticles(prev => prev.filter(p => {
-                    ctx.globalAlpha = p.life;
-                    ctx.fillStyle = p.color;
-                    ctx.shadowBlur = 10 * p.life;
-                    ctx.shadowColor = p.color;
+                const remaining = [];
+                for (const p of particles) {
+                    if (p.life > 0) {
+                        ctx.globalAlpha = p.life;
+                        ctx.fillStyle = p.color;
+                        ctx.shadowBlur = 8 * p.life;
+                        ctx.shadowColor = p.color;
 
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, Math.max(0, 3 * p.life), 0, Math.PI * 2);
-                    ctx.fill();
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, Math.max(1, 3 * p.life), 0, Math.PI * 2);
+                        ctx.fill();
 
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    p.life -= p.decay || 0.05;
-                    return p.life > 0;
-                }));
+                        // Update particle position
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.life -= p.decay;
+
+                        if (p.life > 0) {
+                            remaining.push(p);
+                        }
+                    }
+                }
                 ctx.globalAlpha = 1.0;
                 ctx.shadowBlur = 0;
+                particlesRef.current = remaining;
             }
 
             animationId = requestAnimationFrame(render);
         };
+
         render();
 
-        return () => cancelAnimationFrame(animationId);
-    }, [game, selectedSquare, legalMoves, particles]);
-
+        return () => {
+            running = false;
+            cancelAnimationFrame(animationId);
+        };
+    }, []); // Empty deps = stable loop that never restarts
 
     // --- Interaction ---
     const handleCanvasClick = (e) => {
-        if (game.isGameOver() || (game.turn() === 'b' && !game.isGameOver())) return;
+        const currentGame = gameRef.current;
+        if (currentGame.isGameOver() || currentGame.turn() === 'b') return;
 
         const rect = canvasRef.current.getBoundingClientRect();
-        // Calculate scaling if canvas is resized via CSS
         const scaleX = canvasRef.current.width / rect.width;
         const scaleY = canvasRef.current.height / rect.height;
 
@@ -283,58 +285,47 @@ const ChessCanvas = () => {
         if (file < 0 || file > 7 || rank < 0 || rank > 7) return;
 
         const square = `${String.fromCharCode(97 + file)}${rank + 1}`;
-        const piece = game.get(square);
+        const piece = currentGame.get(square);
 
         // Move Logic
         if (selectedSquare) {
-            // Check if clicking same square (deselect)
             if (square === selectedSquare) {
                 setSelectedSquare(null);
                 setLegalMoves([]);
                 return;
             }
 
-            // Attempt Move
             try {
-                const move = game.move({
+                const move = currentGame.move({
                     from: selectedSquare,
                     to: square,
-                    promotion: 'q' // Auto-promote to Queen for simplicity
+                    promotion: 'q'
                 });
 
                 if (move) {
-                    // Valid Move
-                    // Clear redo history
                     setUndoneMoves([]);
 
-                    const fromX = (selectedSquare.charCodeAt(0) - 97) * SQUARE_SIZE + SQUARE_SIZE / 2;
-                    const fromY = (8 - parseInt(selectedSquare[1])) * SQUARE_SIZE + SQUARE_SIZE / 2;
-                    const toX = x; // Approximate click pos
-                    const toY = y;
-
-                    createMoveTrail(fromX, fromY, toX, toY, COLORS.moveHighlight);
-
+                    // Minimal particle for player capture
                     if (move.captured) {
-                        createExplosion(
-                            (move.to.charCodeAt(0) - 97) * SQUARE_SIZE + SQUARE_SIZE / 2,
-                            (8 - parseInt(move.to[1])) * SQUARE_SIZE + SQUARE_SIZE / 2,
-                            COLORS.blackPiece
-                        );
+                        const captureX = (move.to.charCodeAt(0) - 97) * SQUARE_SIZE + SQUARE_SIZE / 2;
+                        const captureY = (8 - parseInt(move.to[1])) * SQUARE_SIZE + SQUARE_SIZE / 2;
+                        createExplosion(captureX, captureY, COLORS.blackPiece, 8);
                     }
-                    setGame(new Chess(game.fen()));
+                    
+                    setGame(new Chess(currentGame.fen()));
                     setSelectedSquare(null);
                     setLegalMoves([]);
                     return;
                 }
             } catch (e) {
-                // Invalid move, fall through to selection logic
+                // Invalid move, fall through
             }
         }
 
         // Selection Logic
         if (piece && piece.color === 'w') {
             setSelectedSquare(square);
-            setLegalMoves(game.moves({ square: square, verbose: true }));
+            setLegalMoves(currentGame.moves({ square: square, verbose: true }));
         } else {
             setSelectedSquare(null);
             setLegalMoves([]);
@@ -342,31 +333,34 @@ const ChessCanvas = () => {
     };
 
     const handleReset = () => {
-        setGame(new Chess());
-        setParticles([]);
+        const newGame = new Chess();
+        setGame(newGame);
+        gameRef.current = newGame;
+        particlesRef.current = [];
         setSelectedSquare(null);
         setLegalMoves([]);
-        setDifficulty('intermediate'); // Reset visual, though state might persist
+        setUndoneMoves([]);
         resetEngine();
     };
 
     const handleUndo = () => {
-        if (game.history().length === 0) return;
+        const currentGame = gameRef.current;
+        if (currentGame.history().length === 0) return;
 
         let movesToUndo = 1;
-        if (game.turn() === 'w' && game.history().length >= 2 && !game.isGameOver()) {
+        if (currentGame.turn() === 'w' && currentGame.history().length >= 2 && !currentGame.isGameOver()) {
             movesToUndo = 2;
         }
 
         const newUndone = [];
         for (let i = 0; i < movesToUndo; i++) {
-            const move = game.undo();
+            const move = currentGame.undo();
             if (move) newUndone.push(move);
         }
         setUndoneMoves(prev => [...prev, ...newUndone]);
 
-        setGame(new Chess(game.fen()));
-        setParticles([]);
+        setGame(new Chess(currentGame.fen()));
+        particlesRef.current = [];
         setLegalMoves([]);
         setSelectedSquare(null);
     };
@@ -374,6 +368,7 @@ const ChessCanvas = () => {
     const handleRedo = () => {
         if (undoneMoves.length === 0) return;
 
+        const currentGame = gameRef.current;
         let movesToRedo = 1;
         if (undoneMoves.length >= 2) {
             const last = undoneMoves[undoneMoves.length - 1];
@@ -386,11 +381,11 @@ const ChessCanvas = () => {
         const remaining = [...undoneMoves];
         for (let i = 0; i < movesToRedo; i++) {
             const move = remaining.pop();
-            if (move) game.move(move);
+            if (move) currentGame.move(move);
         }
         setUndoneMoves(remaining);
 
-        setGame(new Chess(game.fen()));
+        setGame(new Chess(currentGame.fen()));
     };
 
     return (

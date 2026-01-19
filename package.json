@@ -16,6 +16,8 @@
     "@react-three/fiber": "^9.5.0",
     "animejs": "^4.2.2",
     "chess.js": "^1.4.0",
+    "emoji-picker-react": "^4.16.1",
+    "framer-motion": "^12.27.1",
     "js-dos": "^8.3.20",
     "next": "^16.1.1",
     "pdf-parse": "^2.4.5",
