@@ -1,3 +1,23 @@
+# ============================================================
+# Experiment 2: Study of Python Basic Libraries
+#               (Statistics, Math, Numpy, Scipy)
+# ============================================================
+# Prerequisites:
+#   - Python 3.4 or later
+#
+# Libraries Required:
+#   - statistics (built-in, no installation needed)
+#   - math       (built-in, no installation needed)
+#   - numpy      → pip install numpy
+#   - scipy      → pip install scipy
+#
+# Install all external libraries at once:
+#   $ pip install numpy scipy
+#
+# How to Run:
+#   $ python3 Stat_Lib.py
+# ============================================================
+
 import statistics
 # Input data from user
 data=input("Enter data separated by comma:")

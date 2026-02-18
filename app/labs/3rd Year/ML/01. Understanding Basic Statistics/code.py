@@ -1,3 +1,16 @@
+# ============================================================
+# Experiment 1: Understanding Basic Statistics
+# ============================================================
+# Prerequisites:
+#   - Python 3.4 or later
+#
+# Libraries Required:
+#   - None (uses only built-in Python functions)
+#
+# How to Run:
+#   $ python3 Stat_Measures.py
+# ============================================================
+
 # Prompt user to enter data
 user_input = input("Enter numbers separated by commas: ")
 # Convert the input string to a list of integers

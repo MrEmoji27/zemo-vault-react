@@ -1,3 +1,24 @@
+# ============================================================
+# Experiment 6: Decision Tree using sklearn
+# ============================================================
+# Prerequisites:
+#   - Python 3.x
+#
+# Libraries Required:
+#   - scikit-learn → pip install scikit-learn
+#   - matplotlib   → pip install matplotlib
+#
+# Install all libraries at once:
+#   $ pip install scikit-learn matplotlib
+#
+# Dataset:
+#   - Uses the built-in Iris dataset from sklearn
+#     (no external CSV file needed)
+#
+# How to Run:
+#   $ python3 Dtree.py
+# ============================================================
+
 # Importing required libraries
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split, GridSearchCV

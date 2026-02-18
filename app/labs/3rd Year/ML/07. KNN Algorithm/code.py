@@ -1,3 +1,23 @@
+# ============================================================
+# Experiment 7: K-Nearest Neighbor (KNN) Algorithm
+# ============================================================
+# Prerequisites:
+#   - Python 3.x
+#
+# Libraries Required:
+#   - scikit-learn → pip install scikit-learn
+#
+# Install:
+#   $ pip install scikit-learn
+#
+# Dataset:
+#   - Uses the built-in Iris dataset from sklearn
+#     (no external CSV file needed)
+#
+# How to Run:
+#   $ python3 Knn.py
+# ============================================================
+
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import load_iris

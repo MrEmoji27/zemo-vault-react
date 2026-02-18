@@ -1,3 +1,33 @@
+# ============================================================
+# Experiment 10: Mini Project - Performance Analysis of
+#                Classification Algorithms on Iris Dataset
+# ============================================================
+# Prerequisites:
+#   - Python 3.x
+#
+# Libraries Required:
+#   - numpy        → pip install numpy
+#   - pandas       → pip install pandas
+#   - scikit-learn → pip install scikit-learn
+#
+# Install all libraries at once:
+#   $ pip install scikit-learn numpy pandas
+#
+# Dataset:
+#   - Uses the built-in Iris dataset from sklearn
+#     (no external CSV file needed)
+#
+# Models Used:
+#   - Logistic Regression
+#   - Decision Tree
+#   - K-Nearest Neighbors
+#   - Support Vector Machine (SVM)
+#   - Random Forest
+#
+# How to Run:
+#   $ python3 mini_project.py
+# ============================================================
+
 import numpy as np
 import pandas as pd
 from sklearn.datasets import load_iris

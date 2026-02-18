@@ -1,3 +1,32 @@
+# ============================================================
+# Experiment 5: Multiple Linear Regression
+#               (House Price Prediction)
+# ============================================================
+# Prerequisites:
+#   - Python 3.x
+#
+# Libraries Required:
+#   - pandas       → pip install pandas
+#   - numpy        → pip install numpy
+#   - matplotlib   → pip install matplotlib
+#   - scikit-learn → pip install scikit-learn
+#
+# Install all libraries at once:
+#   $ pip install scikit-learn pandas numpy matplotlib
+#
+# CSV File Required:
+#   - house_data.csv (must be in the same directory)
+#   - Download: https://studyglance.in/labprograms/r22ml/house_data.csv
+#   - Format:
+#       price,area,bedrooms,floors,age
+#       4500000,1500,3,2,5
+#       7000000,2500,4,3,4
+#       ...
+#
+# How to Run:
+#   $ python3 Multiple_Linear_Regression.py
+# ============================================================
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt

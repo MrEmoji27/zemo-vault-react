@@ -1,3 +1,25 @@
+# ============================================================
+# Experiment 9: K-Means Clustering
+# ============================================================
+# Prerequisites:
+#   - Python 3.x
+#
+# Libraries Required:
+#   - numpy        → pip install numpy
+#   - matplotlib   → pip install matplotlib
+#   - scikit-learn → pip install scikit-learn
+#
+# Install all libraries at once:
+#   $ pip install scikit-learn numpy matplotlib
+#
+# Dataset:
+#   - Uses sklearn's make_blobs to generate synthetic data
+#     (no external CSV file needed)
+#
+# How to Run:
+#   $ python3 kmeans.py
+# ============================================================
+
 #Necessary Libraries
 import numpy as np
 import matplotlib.pyplot as plt

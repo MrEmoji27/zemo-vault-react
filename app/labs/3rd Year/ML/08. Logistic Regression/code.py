@@ -1,3 +1,31 @@
+# ============================================================
+# Experiment 8: Logistic Regression
+# ============================================================
+# Prerequisites:
+#   - Python 3.x
+#
+# Libraries Required:
+#   - pandas       → pip install pandas
+#   - numpy        → pip install numpy
+#   - matplotlib   → pip install matplotlib
+#   - scikit-learn → pip install scikit-learn
+#
+# Install all libraries at once:
+#   $ pip install scikit-learn numpy pandas matplotlib
+#
+# CSV File Required:
+#   - study_hours.csv (must be in the same directory)
+#   - Download: https://studyglance.in/labprograms/r22ml/study_hours.csv
+#   - Format:
+#       Study Hours,Exam Result
+#       1,0
+#       2,0
+#       ...
+#
+# How to Run:
+#   $ python3 Logistic_Regression.py
+# ============================================================
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt

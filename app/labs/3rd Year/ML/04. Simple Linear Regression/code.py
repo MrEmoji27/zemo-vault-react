@@ -1,3 +1,30 @@
+# ============================================================
+# Experiment 4: Simple Linear Regression
+# ============================================================
+# Prerequisites:
+#   - Python 3.x
+#
+# Libraries Required:
+#   - pandas       → pip install pandas
+#   - matplotlib   → pip install matplotlib
+#   - scikit-learn → pip install scikit-learn
+#
+# Install all libraries at once:
+#   $ pip install scikit-learn pandas matplotlib
+#
+# CSV File Required:
+#   - salary_data.csv (must be in the same directory)
+#   - Download: https://studyglance.in/labprograms/r22ml/salary_data.csv
+#   - Format:
+#       age,salary
+#       22,30000
+#       25,35000
+#       ...
+#
+# How to Run:
+#   $ python3 Linear_Regression.py
+# ============================================================
+
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
