@@ -846,7 +846,16 @@ function App() {
                       <button
                         className="copy-btn-cyber"
                         onClick={() => {
-                          navigator.clipboard.writeText(part.code).then(() => {
+                          let textToCopy = part.code;
+                          // If copying ML code (Python), strip comments to keep it clean
+                          if (selectedSubject === 'ML') {
+                            textToCopy = textToCopy
+                              .split('\\n')
+                              .filter(line => !line.trim().startsWith('#'))
+                              .join('\\n');
+                          }
+
+                          navigator.clipboard.writeText(textToCopy).then(() => {
                             showToast('Code copied to clipboard!', 2000);
                           });
                         }}

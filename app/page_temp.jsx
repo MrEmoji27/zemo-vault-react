@@ -45,7 +45,7 @@ function App() {
   const [tttXIsNext, setTttXIsNext] = useState(true);
   const [tttVsComputer, setTttVsComputer] = useState(true);
   const tttWinner = calculateTttWinner(tttBoard);
-  
+
   const canvasRef = useRef(null);
   const coinRef = useRef(null);
   const coinRotation = useRef(0);
@@ -169,24 +169,24 @@ function App() {
   useEffect(() => {
     const target = titleRef.current;
     if (!target) return;
-    
+
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*<>";
     let interval = null;
     const originalText = "ZEMO'S VAULT";
-    
+
     const handleMouseOver = () => {
       let iteration = 0;
       clearInterval(interval);
       interval = setInterval(() => {
         target.innerText = originalText.split("").map((letter, index) => {
-          if(index < iteration) return originalText[index];
+          if (index < iteration) return originalText[index];
           return letters[Math.floor(Math.random() * letters.length)];
         }).join("");
-        if(iteration >= originalText.length) clearInterval(interval);
+        if (iteration >= originalText.length) clearInterval(interval);
         iteration += 1 / 3;
       }, 30);
     };
-    
+
     target.addEventListener('mouseover', handleMouseOver);
     return () => {
       target.removeEventListener('mouseover', handleMouseOver);
@@ -269,22 +269,22 @@ function App() {
       const count = Math.ceil(cw / colW);
       const rows = Math.ceil(ch / 26) + 6;
       columns = Array.from({ length: count }, (_, i) => ({
-        x: i * colW + (Math.random()*4-2),
-        head: Math.floor(Math.random()*rows),
-        speed: 1.1 + Math.random()*0.6, // slightly faster baseline
+        x: i * colW + (Math.random() * 4 - 2),
+        head: Math.floor(Math.random() * rows),
+        speed: 1.1 + Math.random() * 0.6, // slightly faster baseline
       }));
     }
 
-    function drawRain(ts=0) {
+    function drawRain(ts = 0) {
       if (!rainCanvas || !rainCtx) return;
       const cw = rainCanvas.width;
       const ch = rainCanvas.height;
-      rainCtx.clearRect(0,0,cw,ch);
+      rainCtx.clearRect(0, 0, cw, ch);
       const lineH = 26; // legacy-ish line height
       const rows = Math.ceil(ch / lineH) + 6;
       const headColor = 'rgba(0,255,140,0.9)';
       const tailColor = 'rgba(0,255,140,0.15)';
-      const charSetLvl = (lvl) => lvl===0 ? '01' : (lvl===1 ? '01#?*&%$@!' : '#?*&§%$@!');
+      const charSetLvl = (lvl) => lvl === 0 ? '01' : (lvl === 1 ? '01#?*&%$@!' : '#?*&§%$@!');
       rainCtx.font = '18px "Roboto Mono", monospace';
       rainCtx.textAlign = 'center';
       rainCtx.textBaseline = 'top';
@@ -298,16 +298,16 @@ function App() {
         for (let i = 0; i <= tail; i++) {
           const r = Math.floor(col.head) + i;
           const y = r * lineH;
-          if (y < -lineH || y > ch+lineH) continue;
+          if (y < -lineH || y > ch + lineH) continue;
           const t = i / tail;
           const a = 0.95 * (1 - t);
           const chars = charSetLvl(corruptionLevel);
-          const chx = chars[Math.floor(Math.random()*chars.length)];
-          rainCtx.fillStyle = i===0 ? headColor : `rgba(0,255,140,${a*0.6})`;
-          if (corruptionLevel>0 && Math.random()<0.10) { // subtler purple bursts
-            rainCtx.fillStyle = i===0 ? 'rgba(255,119,233,0.9)' : 'rgba(255,119,233,0.42)';
+          const chx = chars[Math.floor(Math.random() * chars.length)];
+          rainCtx.fillStyle = i === 0 ? headColor : `rgba(0,255,140,${a * 0.6})`;
+          if (corruptionLevel > 0 && Math.random() < 0.10) { // subtler purple bursts
+            rainCtx.fillStyle = i === 0 ? 'rgba(255,119,233,0.9)' : 'rgba(255,119,233,0.42)';
           }
-          rainCtx.fillText(chx, col.x+9, y);
+          rainCtx.fillText(chx, col.x + 9, y);
         }
       }
       rainAfId = requestAnimationFrame(drawRain);
@@ -388,7 +388,7 @@ function App() {
     const newTheme = !isDarkMode;
     setIsDarkMode(newTheme);
     localStorage.setItem('theme', newTheme ? 'dark' : 'light');
-    
+
     if (newTheme) {
       document.documentElement.classList.remove('light');
       document.documentElement.classList.add('dark');
@@ -606,46 +606,46 @@ function App() {
           pointerEvents: 'none'
         }}
       />
-      
+
       {/* Overlay Effects (disabled while Flappy is active to allow input) */}
       {!(showArcade && activeGame === 'flappy') && (
         <div ref={overlayRef} className="overlay-container" id="overlay-container">
           <div className="crt-overlay"></div>
           <div className="scanner" id="scanner"></div>
           <div className="scanner-shatter" id="scanner-shatter"></div>
-          <canvas className="bit-rain-canvas" id="bit-rain-canvas" style={{ position:'fixed', inset:0, pointerEvents:'none', zIndex: 2 }} />
+          <canvas className="bit-rain-canvas" id="bit-rain-canvas" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 2 }} />
         </div>
       )}
-      
+
       {/* Header */}
       <header className="header">
         <h1 className="title">
           <span ref={titleRef} id="animated-title" data-value="ZEMO'S VAULT">
             ZEMO'S VAULT
           </span>
-          <span 
-            className="alien-emoji" 
+          <span
+            className="alien-emoji"
             onClick={openArcade}
             style={{ cursor: 'pointer' }}
           >
             👾
           </span>
         </h1>
-        
+
         <div className="theme-toggle" onClick={toggleTheme}>
           <div className={`toggle-switch ${isDarkMode ? 'active' : ''}`}>
             <div className="toggle-knob"></div>
           </div>
         </div>
       </header>
-      
+
       {/* Selector */}
       {showSelector && (
         <div className="glass-panel" id="selector-ui">
           <div className="grid grid-cols-3">
             <div className="form-group">
               <label className="form-label">Academic Year</label>
-              <select 
+              <select
                 className="form-select"
                 value={selectedYear}
                 onChange={(e) => {
@@ -663,7 +663,7 @@ function App() {
 
             <div className="form-group">
               <label className="form-label">Subject</label>
-              <select 
+              <select
                 className="form-select"
                 value={selectedSubject}
                 onChange={(e) => {
@@ -681,7 +681,7 @@ function App() {
 
             <div className="form-group">
               <label className="form-label">Experiment</label>
-              <select 
+              <select
                 className="form-select"
                 value={selectedExperiment}
                 onChange={(e) => setSelectedExperiment(e.target.value)}
@@ -704,71 +704,71 @@ function App() {
         <div className="arcade-section" id="arcade-section">
           <div className="arcade-header">
             <h2 className="arcade-title">ARCADE</h2>
-            <button 
+            <button
               className="close-btn"
               onClick={closeArcade}
             >
               ×
             </button>
           </div>
-          
+
           <div className="game-buttons">
-            <button 
+            <button
               className={`game-btn ${activeGame === 'tic-tac-toe' ? 'active' : ''}`}
               onClick={() => setActiveGame('tic-tac-toe')}
             >
               Tic-Tac-Toe
             </button>
-            <button 
+            <button
               className={`game-btn ${activeGame === '2048' ? 'active' : ''}`}
               onClick={() => setActiveGame('2048')}
             >
               2048
             </button>
-            <button 
+            <button
               className={`game-btn ${activeGame === 'snake' ? 'active' : ''}`}
               onClick={() => setActiveGame('snake')}
             >
               Snake
             </button>
-            <button 
+            <button
               className={`game-btn ${activeGame === 'tetris' ? 'active' : ''}`}
               onClick={() => setActiveGame('tetris')}
             >
               Tetris
             </button>
-            <button 
+            <button
               className={`game-btn ${activeGame === 'pong' ? 'active' : ''}`}
               onClick={() => setActiveGame('pong')}
             >
               Pong
             </button>
-            <button 
+            <button
               className={`game-btn ${activeGame === 'breakout' ? 'active' : ''}`}
               onClick={() => setActiveGame('breakout')}
             >
               Breakout
             </button>
-            <button 
+            <button
               className={`game-btn ${activeGame === 'space' ? 'active' : ''}`}
               onClick={() => setActiveGame('space')}
             >
               Space Invaders
             </button>
-            <button 
+            <button
               className={`game-btn ${activeGame === 'flappy' ? 'active' : ''}`}
               onClick={() => setActiveGame('flappy')}
             >
               Flappy
             </button>
-            <button 
+            <button
               className={`game-btn ${activeGame === 'chess' ? 'active' : ''}`}
               onClick={() => setActiveGame('chess')}
             >
               Chess
             </button>
-            
-            <button 
+
+            <button
               className={`game-btn ${activeGame === 'doom' ? 'active' : ''}`}
               onClick={() => setActiveGame('doom')}
             >
@@ -884,7 +884,7 @@ function App() {
               </div>
             )}
 
-            
+
 
             {activeGame === 'doom' && (
               <div className="game-container active" id="doom-container">
@@ -922,7 +922,14 @@ function App() {
                       <button
                         className="copy-btn"
                         onClick={() => {
-                          navigator.clipboard.writeText(part.code).then(() => {
+                          let textToCopy = part.code;
+                          if (selectedSubject === 'ML') {
+                            textToCopy = textToCopy
+                              .split('\\n')
+                              .filter(line => !line.trim().startsWith('#'))
+                              .join('\\n');
+                          }
+                          navigator.clipboard.writeText(textToCopy).then(() => {
                             showToast('Code copied to clipboard!', 2000);
                           });
                         }}
@@ -946,15 +953,15 @@ function App() {
       </div>
       <footer className="footer">
         <p>
-          made by 
-          <span onClick={() => setSecretOpen(true)} style={{ cursor:'pointer', color:'#00ff8c' }}> zemo </span>
+          made by
+          <span onClick={() => setSecretOpen(true)} style={{ cursor: 'pointer', color: '#00ff8c' }}> zemo </span>
           powered by big D and support from Guzz
         </p>
       </footer>
 
       {/* Coin Flip Widget (legacy) */}
-      <div className="coin-widget" id="coin-flipper-widget" onClick={flipCoin} role="button" aria-label="Flip coin" tabIndex={0} onKeyDown={(e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); flipCoin(); } }}>
-        <div 
+      <div className="coin-widget" id="coin-flipper-widget" onClick={flipCoin} role="button" aria-label="Flip coin" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flipCoin(); } }}>
+        <div
           ref={coinRef}
           className="coin"
           id="coin"
@@ -964,22 +971,22 @@ function App() {
             <svg width="60" height="60" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" shapeRendering="crispEdges">
               <g>
                 {/* The coin border (Tails color) */}
-                <path fillRule="evenodd" d="M4 1 H12 V2 H14 V4 H15 V12 H14 V14 H12 V15 H4 V14 H2 V12 H1 V4 H2 V2 H4 Z M4 3 H12 V4 H13 V12 H12 V13 H4 V12 H3 V4 H4 Z" fill="#00ff8c"/>
+                <path fillRule="evenodd" d="M4 1 H12 V2 H14 V4 H15 V12 H14 V14 H12 V15 H4 V14 H2 V12 H1 V4 H2 V2 H4 Z M4 3 H12 V4 H13 V12 H12 V13 H4 V12 H3 V4 H4 Z" fill="#00ff8c" />
                 {/* The 8-bit fallen rose */}
                 {/* Petals (bright pink) */}
-                <path d="M5 6 H7 V7 H5 V6 Z" fill="#ff4dd6"/>
-                <path d="M7 6 H9 V7 H7 V6 Z" fill="#ff4dd6"/>
-                <path d="M6 7 H9 V8 H6 V7 Z" fill="#ff4dd6"/>
-                <path d="M5 8 H8 V9 H5 V8 Z" fill="#ff4dd6"/>
+                <path d="M5 6 H7 V7 H5 V6 Z" fill="#ff4dd6" />
+                <path d="M7 6 H9 V7 H7 V6 Z" fill="#ff4dd6" />
+                <path d="M6 7 H9 V8 H6 V7 Z" fill="#ff4dd6" />
+                <path d="M5 8 H8 V9 H5 V8 Z" fill="#ff4dd6" />
                 {/* Petal shadow (darker magenta) */}
-                <path d="M8 7 H9 V8 H8 V7 Z" fill="#d03ab5"/>
-                <path d="M7 8 H8 V9 H7 V8 Z" fill="#d03ab5"/>
+                <path d="M8 7 H9 V8 H8 V7 Z" fill="#d03ab5" />
+                <path d="M7 8 H8 V9 H7 V8 Z" fill="#d03ab5" />
                 {/* Stem and leaf (neon green) */}
-                <path d="M9 8 H12 V9 H9 V8 Z" fill="#26d07c"/>
-                <path d="M10 9 H11 V10 H10 V9 Z" fill="#26d07c"/>
-                <path d="M11 9 H12 V10 H11 V9 Z" fill="#17b56a"/>
+                <path d="M9 8 H12 V9 H9 V8 Z" fill="#26d07c" />
+                <path d="M10 9 H11 V10 H10 V9 Z" fill="#26d07c" />
+                <path d="M11 9 H12 V10 H11 V9 Z" fill="#17b56a" />
                 {/* Fallen leaf */}
-                <path d="M8 9 H9 V10 H8 V9 Z" fill="#17b56a"/>
+                <path d="M8 9 H9 V10 H8 V9 Z" fill="#17b56a" />
               </g>
             </svg>
           </div>
@@ -988,9 +995,9 @@ function App() {
             <svg width="60" height="60" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" shapeRendering="crispEdges">
               <g fill="#8cffc7">
                 {/* Rounder coin shape */}
-                <path fillRule="evenodd" d="M4 1 H12 V2 H14 V4 H15 V12 H14 V14 H12 V15 H4 V14 H2 V12 H1 V4 H2 V2 H4 Z M4 3 H12 V4 H13 V12 H12 V13 H4 V12 H3 V4 H4 Z"/>
+                <path fillRule="evenodd" d="M4 1 H12 V2 H14 V4 H15 V12 H14 V14 H12 V15 H4 V14 H2 V12 H1 V4 H2 V2 H4 Z M4 3 H12 V4 H13 V12 H12 V13 H4 V12 H3 V4 H4 Z" />
                 {/* Z icon for Heads */}
-                <path d="M5 5 H11 V6 L6 10 H11 V11 H5 V10 L10 6 H5 V5 Z"/>
+                <path d="M5 5 H11 V6 L6 10 H11 V11 H5 V10 L10 6 H5 V5 Z" />
               </g>
             </svg>
           </div>
