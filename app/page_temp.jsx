@@ -925,9 +925,9 @@ function App() {
                           let textToCopy = part.code;
                           if (selectedSubject === 'ML') {
                             textToCopy = textToCopy
-                              .split('\\n')
+                              .split(/\r?\n/)
                               .filter(line => !line.trim().startsWith('#'))
-                              .join('\\n');
+                              .join('\n');
                           }
                           navigator.clipboard.writeText(textToCopy).then(() => {
                             showToast('Code copied to clipboard!', 2000);

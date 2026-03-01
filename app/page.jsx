@@ -850,9 +850,9 @@ function App() {
                           // If copying ML code (Python), strip comments to keep it clean
                           if (selectedSubject === 'ML') {
                             textToCopy = textToCopy
-                              .split('\\n')
+                              .split(/\r?\n/)
                               .filter(line => !line.trim().startsWith('#'))
-                              .join('\\n');
+                              .join('\n');
                           }
 
                           navigator.clipboard.writeText(textToCopy).then(() => {
