@@ -5,6 +5,18 @@ const CHAT_PASSWORD = process.env.CHAT_PASSWORD || 'ALONSO@2005';
 
 const wss = new WebSocketServer({ port: PORT });
 
+function getOnlineCount() {
+  let count = 0;
+  for (const client of wss.clients) {
+    if (client.readyState === 1 && client.authed && client.username) count++;
+  }
+  return count;
+}
+
+function broadcastOnlineCount() {
+  broadcast({ type: 'online', count: getOnlineCount() });
+}
+
 function broadcast(data, except = null) {
   const msg = JSON.stringify(data);
   for (const client of wss.clients) {
@@ -43,6 +55,7 @@ wss.on('connection', (ws) => {
         ws.username = data.name.trim().slice(0, 24);
         broadcast({ type: 'system', text: `${ws.username} joined.`, ts: Date.now() });
         ws.send(JSON.stringify({ type: 'ready', name: ws.username }));
+        broadcastOnlineCount();
       }
       return;
     }
@@ -56,6 +69,7 @@ wss.on('connection', (ws) => {
   ws.on('close', () => {
     if (ws.authed && ws.username) {
       broadcast({ type: 'system', text: `${ws.username} left.`, ts: Date.now() }, ws);
+      broadcastOnlineCount();
     }
   });
 });

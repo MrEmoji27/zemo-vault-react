@@ -27,7 +27,22 @@ const firaCode = Fira_Code({
 
 export const metadata = {
     title: "Zemo's Vault",
-    description: "Arcade game vault with code experiments",
+    description: "Arcade game vault with retro games and lab code experiments. Play Snake, Tetris, Chess, Doom and more — plus browse syntax-highlighted programming experiments.",
+    openGraph: {
+        title: "Zemo's Vault",
+        description: "Arcade game vault with retro games and lab code experiments.",
+        type: 'website',
+        siteName: "Zemo's Vault",
+    },
+    twitter: {
+        card: 'summary',
+        title: "Zemo's Vault",
+        description: "Arcade game vault with retro games and lab code experiments.",
+    },
+    robots: {
+        index: true,
+        follow: true,
+    },
 };
 
 export default function RootLayout({ children }) {

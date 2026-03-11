@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import "./LudoGame.css";
 
 const PLAYERS = ["green", "yellow", "red", "blue"];
@@ -10,11 +10,11 @@ const PLAYER_COLORS = {
   red: "#ff3b3b",
   blue: "#3bb4ff",
 };
-const PLAYER_RING = {
-  green: "#49ffce",
-  yellow: "#ffe470",
-  red: "#ff8080",
-  blue: "#7fd6ff",
+const PLAYER_LABELS = {
+  green: "GREEN (You)",
+  yellow: "YELLOW",
+  red: "RED",
+  blue: "BLUE",
 };
 
 const MAIN_LEN = 52;
@@ -22,25 +22,40 @@ const HOME_STEPS = 6;
 const START_INDEX = { green: 0, yellow: 13, red: 26, blue: 39 };
 const SAFE_SQUARES = new Set([0, 8, 13, 21, 26, 34, 39, 47]);
 
+// Correct 52-cell clockwise path on a 15x15 board [row, col]
 const PATH_COORDS = [
-  [1, 6], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6], [6, 5], [6, 4], [6, 3], [6, 2], [6, 1], [6, 0], [7, 0],
-  [8, 0], [8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [8, 6], [9, 6], [10, 6], [11, 6], [12, 6], [13, 6], [14, 6],
-  [14, 7], [13, 7], [12, 7], [11, 7], [10, 7], [9, 7], [8, 7], [8, 8], [8, 9], [8, 10], [8, 11], [8, 12], [8, 13],
-  [8, 14], [7, 14], [6, 14], [5, 14], [4, 14], [3, 14], [2, 14], [1, 14], [1, 13], [1, 12], [1, 11], [1, 10], [1, 9],
+  // Green side (0-12): down col 6, left row 6, corners
+  [1,6], [2,6], [3,6], [4,6], [5,6],
+  [6,5], [6,4], [6,3], [6,2], [6,1], [6,0],
+  [7,0], [8,0],
+  // Blue side (13-25): right row 8, down col 6, corners
+  [8,1], [8,2], [8,3], [8,4], [8,5],
+  [9,6], [10,6], [11,6], [12,6], [13,6], [14,6],
+  [14,7], [14,8],
+  // Red side (26-38): up col 8, right row 8, corners
+  [13,8], [12,8], [11,8], [10,8], [9,8],
+  [8,9], [8,10], [8,11], [8,12], [8,13], [8,14],
+  [7,14], [6,14],
+  // Yellow side (39-51): left row 6, up col 8, corners
+  [6,13], [6,12], [6,11], [6,10], [6,9],
+  [5,8], [4,8], [3,8], [2,8], [1,8], [0,8],
+  [0,7], [0,6],
 ];
 
+// Home lanes: 6 cells leading to center [7,7]
 const HOME_PATHS = {
-  green: [[2, 7], [3, 7], [4, 7], [5, 7], [6, 7], [7, 7]],
-  yellow: [[7, 12], [7, 11], [7, 10], [7, 9], [7, 8], [7, 7]],
-  red: [[12, 7], [11, 7], [10, 7], [9, 7], [8, 7], [7, 7]],
-  blue: [[7, 2], [7, 3], [7, 4], [7, 5], [7, 6], [7, 7]],
+  green:  [[1,7], [2,7], [3,7], [4,7], [5,7], [6,7]],
+  blue:   [[7,1], [7,2], [7,3], [7,4], [7,5], [7,6]],
+  red:    [[13,7], [12,7], [11,7], [10,7], [9,7], [8,7]],
+  yellow: [[7,13], [7,12], [7,11], [7,10], [7,9], [7,8]],
 };
 
+// Where tokens sit when in base
 const BASE_SLOTS = {
-  green: [[1, 1], [1, 4], [4, 1], [4, 4]],
-  yellow: [[1, 10], [1, 13], [4, 10], [4, 13]],
-  red: [[10, 10], [10, 13], [13, 10], [13, 13]],
-  blue: [[10, 1], [10, 4], [13, 1], [13, 4]],
+  green:  [[2,1], [2,4], [4,1], [4,4]],
+  yellow: [[2,10], [2,13], [4,10], [4,13]],
+  red:    [[10,10], [10,13], [13,10], [13,13]],
+  blue:   [[10,1], [10,4], [13,1], [13,4]],
 };
 
 const defaultTokens = () => {
@@ -66,44 +81,77 @@ function capturePossible(tokens, pos, movingPlayer) {
 }
 
 function performCapture(tokens, pos, movingPlayer) {
-  const updated = { ...tokens };
+  const updated = {};
   PLAYERS.forEach((p) => {
-    if (p === movingPlayer) return;
-    updated[p] = updated[p].map((t) => (t === pos ? -1 : t));
+    if (p === movingPlayer) {
+      updated[p] = [...tokens[p]];
+    } else {
+      updated[p] = tokens[p].map((t) => (t === pos ? -1 : t));
+    }
   });
   return updated;
 }
 
-function computeLegalMovesFrom(tokens, player, diceValue) {
+function computeLegalMoves(tokens, player, diceValue) {
   const moves = [];
   const myTokens = tokens[player];
   myTokens.forEach((pos, i) => {
+    // Token in home lane
     if (typeof pos === "string" && pos.startsWith("H")) {
       const step = parseInt(pos.slice(1), 10);
       const next = step + diceValue;
-      if (next <= HOME_STEPS) moves.push({ piece: i, from: pos, to: `H${next}`, finished: next === HOME_STEPS });
-      return;
-    }
-    if (pos === -1) {
-      if (diceValue === 6) {
-        const entry = START_INDEX[player];
-        const ownThere = tokens[player].some((t) => t === entry);
-        if (!ownThere) moves.push({ piece: i, from: -1, to: entry, capture: capturePossible(tokens, entry, player) });
+      if (next <= HOME_STEPS) {
+        moves.push({ piece: i, from: pos, to: `H${next}`, finished: next === HOME_STEPS });
       }
       return;
     }
+    // Token in base
+    if (pos === -1) {
+      if (diceValue === 6) {
+        const entry = START_INDEX[player];
+        const ownThere = tokens[player].some((t, j) => j !== i && t === entry);
+        if (!ownThere) {
+          moves.push({ piece: i, from: -1, to: entry, capture: capturePossible(tokens, entry, player) });
+        }
+      }
+      return;
+    }
+    // Token on main path
     const dist = distanceFromStart(player, pos);
     const newDist = dist + diceValue;
     if (newDist >= MAIN_LEN) {
       const homeStep = newDist - MAIN_LEN + 1;
-      if (homeStep <= HOME_STEPS) moves.push({ piece: i, from: pos, to: `H${homeStep}`, finished: homeStep === HOME_STEPS });
+      if (homeStep <= HOME_STEPS) {
+        moves.push({ piece: i, from: pos, to: `H${homeStep}`, finished: homeStep === HOME_STEPS });
+      }
       return;
     }
     const target = (pos + diceValue) % MAIN_LEN;
-    const ownThere = tokens[player].some((t) => t === target);
-    if (!ownThere) moves.push({ piece: i, from: pos, to: target, capture: capturePossible(tokens, target, player) });
+    const ownThere = tokens[player].some((t, j) => j !== i && t === target);
+    if (!ownThere) {
+      moves.push({ piece: i, from: pos, to: target, capture: capturePossible(tokens, target, player) });
+    }
   });
   return moves;
+}
+
+function finishedCount(tokens, player) {
+  return tokens[player].filter(
+    (t) => typeof t === "string" && t === `H${HOME_STEPS}`
+  ).length;
+}
+
+// AI: pick the best move
+function pickAIMove(moves) {
+  // Priority: capture > finish > enter from base > advance furthest
+  const capture = moves.find((m) => m.capture);
+  if (capture) return capture;
+  const finish = moves.find((m) => m.finished);
+  if (finish) return finish;
+  const enter = moves.find((m) => m.from === -1);
+  if (enter) return enter;
+  // Advance the token closest to home
+  return moves[moves.length - 1];
 }
 
 export default function Ludo() {
@@ -111,32 +159,76 @@ export default function Ludo() {
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [dice, setDice] = useState(null);
   const [rolling, setRolling] = useState(false);
-  const [diceRolled, setDiceRolled] = useState(false);
+  const [phase, setPhase] = useState("roll"); // roll | move | done
   const [selectedPiece, setSelectedPiece] = useState(null);
-  const [message, setMessage] = useState("Press ROLL to start.");
+  const [message, setMessage] = useState("Roll the dice to start!");
   const [winner, setWinner] = useState(null);
-  const [recentMoveMarker, setRecentMoveMarker] = useState(null);
-  const [showInfoPanel, setShowInfoPanel] = useState(true);
+  const [consecutiveSixes, setConsecutiveSixes] = useState(0);
 
+  const aiTimer = useRef(null);
   const currentPlayer = PLAYERS[currentPlayerIndex];
+  const isHuman = currentPlayer === "green";
 
+  // Cleanup AI timer
   useEffect(() => {
-    if (winner) setMessage(`${winner.toUpperCase()} wins!`);
-  }, [winner]);
+    return () => { if (aiTimer.current) clearTimeout(aiTimer.current); };
+  }, []);
 
-  const finishedCount = (player) =>
-    tokens[player].filter((t) => typeof t === "string" && t.startsWith("H") && parseInt(t.slice(1), 10) === HOME_STEPS).length;
+  const passTurn = useCallback(() => {
+    setDice(null);
+    setPhase("roll");
+    setSelectedPiece(null);
+    setConsecutiveSixes(0);
+    setCurrentPlayerIndex((prev) => {
+      const nxt = (prev + 1) % PLAYERS.length;
+      setMessage(`${PLAYERS[nxt].toUpperCase()}'s turn`);
+      return nxt;
+    });
+  }, []);
 
-  function rollDice() {
-    if (winner || rolling) return;
-    if (diceRolled) {
-      setMessage("You already rolled — select a piece or SKIP.");
+  const applyMove = useCallback((chosen, currentTokens, player, diceVal) => {
+    let updated = { ...currentTokens };
+    PLAYERS.forEach((p) => (updated[p] = [...currentTokens[p]]));
+
+    if (typeof chosen.to === "number" && capturePossible(currentTokens, chosen.to, player)) {
+      updated = performCapture(updated, chosen.to, player);
+    }
+    updated[player][chosen.piece] = chosen.to;
+    setTokens(updated);
+
+    if (chosen.finished && finishedCount(updated, player) >= 4) {
+      setWinner(player);
+      setMessage(`${player.toUpperCase()} wins!`);
+      setPhase("done");
       return;
     }
+
+    if (diceVal === 6) {
+      setConsecutiveSixes((prev) => {
+        const next = prev + 1;
+        if (next >= 3) {
+          setMessage(`${player.toUpperCase()} rolled three 6s — turn forfeited!`);
+          setTimeout(() => passTurn(), 600);
+          return 0;
+        }
+        setMessage(`${player.toUpperCase()} rolled a 6 — roll again!`);
+        setDice(null);
+        setPhase("roll");
+        setSelectedPiece(null);
+        return next;
+      });
+    } else {
+      passTurn();
+    }
+  }, [passTurn]);
+
+  const rollDice = useCallback(() => {
+    if (winner || rolling || phase !== "roll") return;
     setRolling(true);
     setSelectedPiece(null);
     setMessage("Rolling...");
-    const ticks = 10 + Math.floor(Math.random() * 8);
+
+    const ticks = 8 + Math.floor(Math.random() * 6);
     let i = 0;
     const interval = setInterval(() => {
       const v = Math.floor(Math.random() * 6) + 1;
@@ -145,375 +237,356 @@ export default function Ludo() {
       if (i >= ticks) {
         clearInterval(interval);
         setRolling(false);
-        setDiceRolled(true);
-        setMessage(`${currentPlayer.toUpperCase()} rolled ${v}. Select a piece.`);
+        setDice((finalVal) => {
+          // Check if there are legal moves
+          setTimeout(() => {
+            setTokens((currentTokens) => {
+              const legal = computeLegalMoves(currentTokens, currentPlayer, finalVal);
+              if (legal.length === 0) {
+                setMessage(`${currentPlayer.toUpperCase()} rolled ${finalVal} — no legal moves`);
+                setTimeout(() => passTurn(), 800);
+              } else if (legal.length === 1 && !isHuman) {
+                setPhase("move");
+              } else {
+                setPhase("move");
+                if (isHuman) {
+                  setMessage(`You rolled ${finalVal}. ${legal.length === 1 ? "Only one move — click MOVE or the piece." : "Select a piece to move."}`);
+                }
+              }
+              return currentTokens;
+            });
+          }, 100);
+          return finalVal;
+        });
       }
-    }, 70);
-  }
+    }, 60);
+  }, [winner, rolling, phase, currentPlayer, isHuman, passTurn]);
 
-  function passTurn(nextIndex = null) {
-    setDice(null);
-    setDiceRolled(false);
-    setSelectedPiece(null);
-    setRecentMoveMarker(null);
-    setCurrentPlayerIndex((prev) => {
-      const nxt = nextIndex !== null ? nextIndex : (prev + 1) % PLAYERS.length;
-      // Set message based on computed next index to avoid stale state
-      setMessage(`${PLAYERS[nxt].toUpperCase()}'s turn.`);
-      return nxt;
-    });
-  }
+  // AI auto-play
+  useEffect(() => {
+    if (winner || isHuman) return;
+    if (aiTimer.current) clearTimeout(aiTimer.current);
 
-  function handleSelectPiece(idx) {
-    if (!diceRolled) {
-      setMessage("Roll first.");
-      return;
-    }
-    setSelectedPiece(idx);
-    setMessage(`Selected piece ${idx + 1}. Press MOVE to confirm.`);
-  }
-
-  function moveSelectedPiece() {
-    if (!diceRolled) {
-      setMessage("Roll first.");
-      return;
-    }
-    const val = dice;
-    const legal = computeLegalMovesFrom(tokens, currentPlayer, val);
-    if (legal.length === 0) {
-      setMessage("No legal moves. Turn passes.");
-      passTurn();
-      return;
-    }
-    let chosen = null;
-    if (selectedPiece !== null) {
-      chosen = legal.find((m) => m.piece === selectedPiece);
-      if (!chosen) {
-        setMessage("Selected piece cannot move with this roll.");
-        return;
+    aiTimer.current = setTimeout(() => {
+      if (phase === "roll") {
+        rollDice();
+      } else if (phase === "move" && dice !== null) {
+        const legal = computeLegalMoves(tokens, currentPlayer, dice);
+        if (legal.length === 0) {
+          passTurn();
+          return;
+        }
+        const chosen = pickAIMove(legal);
+        setMessage(`${currentPlayer.toUpperCase()} moves piece ${chosen.piece + 1}`);
+        applyMove(chosen, tokens, currentPlayer, dice);
       }
-    } else if (legal.length === 1) {
-      chosen = legal[0];
-    } else {
-      setMessage("Multiple possible moves — select which piece to move.");
-      return;
-    }
+    }, phase === "roll" ? 700 : 500);
 
-    let updated = { ...tokens };
-    if (typeof chosen.to === "number" && capturePossible(tokens, chosen.to, currentPlayer)) {
-      updated = performCapture(updated, chosen.to, currentPlayer);
-    }
-    const playerTokens = [...updated[currentPlayer]];
-    playerTokens[chosen.piece] = chosen.to;
-    updated[currentPlayer] = playerTokens;
-    setTokens(updated);
-    setRecentMoveMarker({ player: currentPlayer, piece: chosen.piece, to: chosen.to });
+    return () => { if (aiTimer.current) clearTimeout(aiTimer.current); };
+  }, [currentPlayerIndex, phase, winner, isHuman, dice, tokens, currentPlayer, rollDice, passTurn, applyMove]);
 
-    if (chosen.finished) {
-      const finishedNow = finishedCount(currentPlayer) + 1;
-      if (finishedNow >= 4) {
-        setWinner(currentPlayer);
-        setMessage(`${currentPlayer.toUpperCase()} wins!`);
-        return;
-      }
-    }
+  function handleCellClick(target) {
+    if (!isHuman || phase !== "move" || dice === null) return;
+    const legal = computeLegalMoves(tokens, currentPlayer, dice);
+    if (legal.length === 0) return;
 
-    if (val === 6) {
-      setDice(null);
-      setDiceRolled(false);
-      setSelectedPiece(null);
-      setMessage(`${currentPlayer.toUpperCase()} rolled a 6 — roll again.`);
-      return;
-    }
-    passTurn();
-  }
-
-  function moveToTarget(target) {
-    if (!diceRolled) {
-      setMessage("Roll first.");
-      return;
-    }
-    const val = dice;
-    const legal = computeLegalMovesFrom(tokens, currentPlayer, val);
-    if (legal.length === 0) {
-      setMessage("No legal moves. Turn passes.");
-      passTurn();
-      return;
-    }
-    // if a piece is selected, try exact target match
     let chosen = null;
     if (selectedPiece !== null) {
       chosen = legal.find((m) => m.to === target && m.piece === selectedPiece);
     }
-    // otherwise allow any unique move to that target
     if (!chosen) {
       const candidates = legal.filter((m) => m.to === target);
       if (candidates.length === 1) chosen = candidates[0];
-      if (!chosen) {
-        setMessage("Select a valid piece for that destination.");
-        return;
-      }
     }
-
-    let updated = { ...tokens };
-    if (typeof chosen.to === "number" && capturePossible(tokens, chosen.to, currentPlayer)) {
-      updated = performCapture(updated, chosen.to, currentPlayer);
-    }
-    const playerTokens = [...updated[currentPlayer]];
-    playerTokens[chosen.piece] = chosen.to;
-    updated[currentPlayer] = playerTokens;
-    setTokens(updated);
-    setRecentMoveMarker({ player: currentPlayer, piece: chosen.piece, to: chosen.to });
-
-    if (chosen.finished) {
-      const finishedNow = finishedCount(currentPlayer) + 1;
-      if (finishedNow >= 4) {
-        setWinner(currentPlayer);
-        setMessage(`${currentPlayer.toUpperCase()} wins!`);
-        return;
-      }
-    }
-
-    if (val === 6) {
-      setDice(null);
-      setDiceRolled(false);
-      setSelectedPiece(null);
-      setMessage(`${currentPlayer.toUpperCase()} rolled a 6 — roll again.`);
+    if (!chosen) {
+      setMessage("Can't move there. Pick a valid destination.");
       return;
     }
-    passTurn();
+    applyMove(chosen, tokens, currentPlayer, dice);
   }
 
-  function skipTurn() {
-    if (!diceRolled) {
-      setMessage("Roll first.");
+  function handlePieceClick(player, idx) {
+    if (!isHuman || phase !== "move" || player !== currentPlayer || dice === null) return;
+    const legal = computeLegalMoves(tokens, currentPlayer, dice);
+    const movesForPiece = legal.filter((m) => m.piece === idx);
+
+    if (movesForPiece.length === 0) {
+      setMessage(`Piece ${idx + 1} can't move with a ${dice}.`);
       return;
     }
-    passTurn();
+
+    if (movesForPiece.length === 1) {
+      // Auto-move if only one option for this piece
+      applyMove(movesForPiece[0], tokens, currentPlayer, dice);
+      return;
+    }
+
+    setSelectedPiece(idx);
+    setMessage(`Selected piece ${idx + 1}. Click a destination.`);
+  }
+
+  function handleMoveBtn() {
+    if (!isHuman || phase !== "move" || dice === null) return;
+    const legal = computeLegalMoves(tokens, currentPlayer, dice);
+    if (legal.length === 0) {
+      passTurn();
+      return;
+    }
+    if (legal.length === 1) {
+      applyMove(legal[0], tokens, currentPlayer, dice);
+      return;
+    }
+    if (selectedPiece !== null) {
+      const chosen = legal.find((m) => m.piece === selectedPiece);
+      if (chosen) {
+        applyMove(chosen, tokens, currentPlayer, dice);
+      } else {
+        setMessage("Selected piece can't move. Pick another.");
+      }
+    } else {
+      setMessage("Multiple pieces can move — select one first.");
+    }
   }
 
   function newGame() {
+    if (aiTimer.current) clearTimeout(aiTimer.current);
     setTokens(defaultTokens());
     setCurrentPlayerIndex(0);
     setDice(null);
-    setDiceRolled(false);
+    setPhase("roll");
     setSelectedPiece(null);
-    setMessage("New game. Press ROLL.");
+    setMessage("New game! Roll the dice.");
     setWinner(null);
-    setRecentMoveMarker(null);
-    setShowInfoPanel(true);
+    setConsecutiveSixes(0);
   }
 
-  const boardCells = useMemo(() => {
-    const rows = Array.from({ length: 15 }).map(() =>
-      Array.from({ length: 15 }).map(() => ({ type: "empty" }))
-    );
+  // Compute which cells are legal destinations for highlighting
+  const legalDestinations = useMemo(() => {
+    if (!isHuman || phase !== "move" || dice === null) return new Set();
+    const legal = computeLegalMoves(tokens, currentPlayer, dice);
+    const filtered = selectedPiece !== null ? legal.filter((m) => m.piece === selectedPiece) : legal;
+    return new Set(filtered.map((m) => {
+      if (typeof m.to === "number") return `path-${m.to}`;
+      return `home-${currentPlayer}-${m.to}`;
+    }));
+  }, [tokens, currentPlayer, dice, phase, isHuman, selectedPiece]);
 
-    for (let r = 0; r <= 5; r++)
-      for (let c = 0; c <= 5; c++) rows[r][c] = { type: "base-green" };
-    for (let r = 0; r <= 5; r++)
-      for (let c = 9; c <= 14; c++) rows[r][c] = { type: "base-yellow" };
-    for (let r = 9; r <= 14; r++)
-      for (let c = 0; c <= 5; c++) rows[r][c] = { type: "base-red" };
-    for (let r = 9; r <= 14; r++)
-      for (let c = 9; c <= 14; c++) rows[r][c] = { type: "base-blue" };
+  // Which pieces can move (for glow effect)
+  const movablePieces = useMemo(() => {
+    if (phase !== "move" || dice === null) return new Set();
+    const legal = computeLegalMoves(tokens, currentPlayer, dice);
+    return new Set(legal.map((m) => `${currentPlayer}-${m.piece}`));
+  }, [tokens, currentPlayer, dice, phase]);
 
-    PATH_COORDS.forEach((coord, idx) => {
-      const [r, c] = coord;
-      rows[r][c] = { type: "path", index: idx, safe: SAFE_SQUARES.has(idx) };
-    });
-
-    Object.entries(HOME_PATHS).forEach(([p, coords]) => {
-      coords.forEach((coord, i) => {
-        const [r, c] = coord;
-        rows[r][c] = { type: `home-${p}`, step: i + 1 };
-      });
-    });
-
-    rows[7][7] = { type: "center" };
-
-    return rows;
-  }, []);
-
-  const tokensByCoord = useMemo(() => {
-    const map = {};
+  // Token coordinate lookup
+  const tokenPositions = useMemo(() => {
+    const result = [];
     PLAYERS.forEach((player) => {
       tokens[player].forEach((pos, i) => {
-        if (typeof pos === "number") {
-          const coord = PATH_COORDS[pos];
-          if (!coord) return;
-          const key = `${coord[0]}-${coord[1]}`;
-          map[key] = map[key] || [];
-          map[key].push({ player, idx: i });
-          return;
-        }
-        if (typeof pos === "string" && pos.startsWith("H")) {
+        let rc = null;
+        if (typeof pos === "number") rc = PATH_COORDS[pos];
+        else if (typeof pos === "string" && pos.startsWith("H")) {
           const step = parseInt(pos.slice(1), 10);
-          const coord = HOME_PATHS[player][step - 1];
-          if (!coord) return;
-          const key = `${coord[0]}-${coord[1]}`;
-          map[key] = map[key] || [];
-          map[key].push({ player, idx: i });
-          return;
+          rc = HOME_PATHS[player][step - 1];
         }
-        if (pos === -1) {
-          const slot = BASE_SLOTS[player][i];
-          if (!slot) return;
-          const key = `${slot[0]}-${slot[1]}`;
-          map[key] = map[key] || [];
-          map[key].push({ player, idx: i, base: true });
-        }
+        else if (pos === -1) rc = BASE_SLOTS[player][i];
+        if (!rc) return;
+
+        result.push({ player, idx: i, row: rc[0], col: rc[1], inBase: pos === -1 });
       });
     });
-    return map;
+    return result;
   }, [tokens]);
 
+  // Stack offsets for tokens sharing a cell
+  const tokensByCell = useMemo(() => {
+    const map = {};
+    tokenPositions.forEach((t) => {
+      const key = `${t.row}-${t.col}`;
+      if (!map[key]) map[key] = [];
+      map[key].push(t);
+    });
+    return map;
+  }, [tokenPositions]);
+
+  function getStackOffset(row, col, player, idx) {
+    const key = `${row}-${col}`;
+    const stack = tokensByCell[key] || [];
+    const kidx = stack.findIndex((t) => t.player === player && t.idx === idx);
+    const n = stack.length;
+    if (n <= 1) return [0, 0];
+    if (n === 2) return [kidx === 0 ? -0.14 : 0.14, 0];
+    if (n === 3) {
+      const pat = [[-0.14, -0.08], [0.14, -0.08], [0, 0.14]];
+      return pat[kidx] || [0, 0];
+    }
+    const pat = [[-0.14, -0.14], [0.14, -0.14], [-0.14, 0.14], [0.14, 0.14]];
+    return pat[kidx % 4] || [0, 0];
+  }
+
+  // Dice face dots
+  const diceDots = {
+    1: [[1,1]],
+    2: [[0,2],[2,0]],
+    3: [[0,2],[1,1],[2,0]],
+    4: [[0,0],[0,2],[2,0],[2,2]],
+    5: [[0,0],[0,2],[1,1],[2,0],[2,2]],
+    6: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,2]],
+  };
+
   return (
-    <div className="min-h-screen bg-[#020202] flex items-center justify-center py-6 px-4">
-      <div className="w-full max-w-[1200px] grid grid-cols-12 gap-4">
-        {/* Sidebar removed to declutter; tokens are selectable on-board now */}
-        <div className="col-span-2"></div>
-
-        <div className="col-span-8">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              {PLAYERS.map((p) => (
-                <div key={p} className={`px-2 py-1 rounded-md border ${p === currentPlayer ? "ring-2 ring-green-400" : "opacity-60"}`} style={{ borderColor: PLAYER_RING[p] }}>
-                  <span className="text-xs" style={{ color: PLAYER_COLORS[p] }}>{p.toUpperCase()}</span>
-                </div>
-              ))}
-              <div className={`px-2 py-1 rounded-md border`} style={{ borderColor: "rgba(0,255,140,0.35)" }}>
-                <span className="text-xs text-gray-200">Dice: <span className="text-white font-semibold">{dice ?? "-"}</span></span>
-              </div>
+    <div className="ludo-wrapper">
+      {/* Top bar: players + controls */}
+      <div className="ludo-topbar">
+        <div className="ludo-players">
+          {PLAYERS.map((p) => (
+            <div
+              key={p}
+              className={`ludo-player-badge ${p === currentPlayer ? "active" : ""}`}
+              style={{ borderColor: PLAYER_COLORS[p], color: PLAYER_COLORS[p] }}
+            >
+              <span className="ludo-badge-dot" style={{ background: PLAYER_COLORS[p] }} />
+              {p === "green" ? "YOU" : p.toUpperCase()}
+              <span className="ludo-badge-score">{finishedCount(tokens, p)}/4</span>
             </div>
-
-            <div className="flex gap-2">
-              <button onClick={rollDice} disabled={rolling || winner != null} className="px-4 py-2 rounded-md neon-btn-green">
-                {rolling ? "Rolling…" : "ROLL"}
-              </button>
-              <button onClick={moveSelectedPiece} disabled={!diceRolled || winner != null} className="px-4 py-2 rounded-md neon-btn-yellow">MOVE</button>
-              <button onClick={skipTurn} disabled={!diceRolled || winner != null} className="px-4 py-2 rounded-md neon-btn-red">SKIP</button>
-              <button onClick={newGame} className="px-4 py-2 rounded-md neon-btn-white">NEW</button>
-            </div>
-          </div>
-
-          <div className="board-outer neon-border">
-            <div className={`dice-display ${rolling ? "dice-rolling" : ""}`}><div className="dice-inner">{dice ?? "-"}</div></div>
-
-            {/* SVG BOARD */}
-            <svg className="ludo-svg" viewBox="0 0 15 15" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Ludo board">
-              <defs>
-                <filter id="glowPink" x="-50%" y="-50%" width="200%" height="200%">
-                  <feDropShadow dx="0" dy="0" stdDeviation="0.35" floodColor="#ff77e9" floodOpacity="0.75" />
-                </filter>
-                <filter id="glowBlue" x="-50%" y="-50%" width="200%" height="200%">
-                  <feDropShadow dx="0" dy="0" stdDeviation="0.25" floodColor="#5cc3ff" floodOpacity="0.6" />
-                </filter>
-              </defs>
-
-              {/* Bases with rounded frames */}
-              <g className="bases" stroke="rgba(255,255,255,0.08)" strokeWidth="0.08">
-                <rect x="0" y="0" width="6" height="6" rx="0.5" className="base-green" />
-                <rect x="9" y="0" width="6" height="6" rx="0.5" className="base-yellow" />
-                <rect x="0" y="9" width="6" height="6" rx="0.5" className="base-red" />
-                <rect x="9" y="9" width="6" height="6" rx="0.5" className="base-blue" />
-              </g>
-
-              {/* Main path squares (neon blue) */}
-              <g className="path-squares">
-                {PATH_COORDS.map(([r,c], idx) => {
-                  const legal = diceRolled && computeLegalMovesFrom(tokens, currentPlayer, dice).some(m => typeof m.to === 'number' && m.to === idx && (selectedPiece === null || m.piece === selectedPiece));
-                  const safe = SAFE_SQUARES.has(idx);
-                  return (
-                    <g key={`p-${idx}`} onClick={() => { if (diceRolled) moveToTarget(idx); }} className={`svg-cell ${legal ? 'svg-legal' : ''}`}>
-                      <rect x={c+0.01} y={r+0.01} width="0.98" height="0.98" rx="0.08" className={safe ? 'path-safe' : 'path'} />
-                      {safe && (
-                        <path
-                          className="safe-star"
-                          d={`M ${c+0.5} ${r+0.34}
-                              l 0.06 0.12 0.14 0.02 -0.10 0.09 0.02 0.14 -0.12 -0.07 -0.12 0.07 0.02 -0.14 -0.10 -0.09 0.14 -0.02 Z`}
-                        />
-                      )}
-                    </g>
-                  );
-                })}
-              </g>
-
-              {/* Home lanes */}
-              {Object.entries(HOME_PATHS).map(([p, coords]) => (
-                <g key={`home-${p}`} className={`home-lane home-${p}`}>
-                  {coords.map(([r,c], i) => {
-                    const dest = `H${i+1}`;
-                    const legal = diceRolled && computeLegalMovesFrom(tokens, currentPlayer, dice).some(m => typeof m.to === 'string' && m.to === dest && (selectedPiece === null || m.piece === selectedPiece));
-                    return (
-                      <rect key={`h-${p}-${i}`} x={c+0.01} y={r+0.01} width="0.98" height="0.98" rx="0.08" className={`home ${p} ${legal ? 'svg-legal' : ''}`} onClick={() => { if (diceRolled) moveToTarget(dest); }} />
-                    );
-                  })}
-                </g>
-              ))}
-
-              {/* Center rosette */}
-              <g className="center">
-                {/* center square */}
-                <rect x="6.6" y="6.6" width="1.8" height="1.8" rx="0.22" className="center-core" />
-                {/* Up (green) triangle */}
-                <polygon className="center-fan green" points="7.5,7.5 6.6,6.6 8.4,6.6" />
-                {/* Right (yellow) triangle */}
-                <polygon className="center-fan yellow" points="7.5,7.5 8.4,6.6 8.4,8.4" />
-                {/* Down (red) triangle */}
-                <polygon className="center-fan red" points="7.5,7.5 6.6,8.4 8.4,8.4" />
-                {/* Left (blue) triangle */}
-                <polygon className="center-fan blue" points="7.5,7.5 6.6,6.6 6.6,8.4" />
-              </g>
-
-              {/* Tokens as circles (with stacking offsets) */}
-              <g className="tokens" filter="url(#glowBlue)">
-                {PLAYERS.flatMap(player => (
-                  tokens[player].map((pos, i) => {
-                    // Resolve grid coordinate for each token
-                    let rc = null;
-                    if (typeof pos === 'number') rc = PATH_COORDS[pos];
-                    else if (typeof pos === 'string' && pos.startsWith('H')) rc = HOME_PATHS[player][parseInt(pos.slice(1),10)-1];
-                    else if (pos === -1) rc = BASE_SLOTS[player][i];
-                    if (!rc) return null;
-                    const [r,c] = rc;
-                    // state classes
-                    let canMoveForThis = false;
-                    if (diceRolled && player === currentPlayer && typeof dice === 'number') {
-                      const legal = computeLegalMovesFrom(tokens, currentPlayer, dice);
-                      canMoveForThis = legal.some(m => m.piece === i);
-                    }
-                    const isSelected = player === currentPlayer && selectedPiece === i;
-
-                    // stacking offsets for multiple tokens on one cell
-                    const key = `${r}-${c}`;
-                    const stack = tokensByCoord[key] || [];
-                    const kidx = stack.findIndex(t => t.player === player && t.idx === i);
-                    const n = stack.length;
-                    let dx = 0, dy = 0;
-                    if (n === 2) {
-                      dx = kidx === 0 ? -0.12 : 0.12;
-                    } else if (n === 3) {
-                      const pat = [ [-0.12, -0.07], [0.12, -0.07], [0, 0.12] ];
-                      dx = pat[kidx]?.[0] ?? 0; dy = pat[kidx]?.[1] ?? 0;
-                    } else if (n >= 4) {
-                      const pat = [ [-0.12,-0.12], [0.12,-0.12], [-0.12,0.12], [0.12,0.12] ];
-                      const p = pat[kidx % 4] || [0,0]; dx = p[0]; dy = p[1];
-                    }
-                    return (
-                      <g key={`t-${player}-${i}`} className={`token-svg ${player} ${canMoveForThis ? 'can-move' : ''} ${isSelected ? 'selected' : ''}`} onClick={() => { if (player === currentPlayer) handleSelectPiece(i); }}>
-                        <circle cx={c+0.5+dx} cy={r+0.5+dy} r={0.32} className="chip" />
-                        <text x={c+0.5+dx} y={r+0.56+dy} textAnchor="middle" className="chip-label">{i+1}</text>
-                      </g>
-                    );
-                  })
-                ))}
-              </g>
-            </svg>
-          </div>
+          ))}
+        </div>
+        <div className="ludo-controls">
+          {isHuman && phase === "roll" && !winner && (
+            <button className="ludo-btn ludo-btn-roll" onClick={rollDice} disabled={rolling}>
+              {rolling ? "..." : "ROLL"}
+            </button>
+          )}
+          {isHuman && phase === "move" && !winner && (
+            <button className="ludo-btn ludo-btn-move" onClick={handleMoveBtn}>MOVE</button>
+          )}
+          <button className="ludo-btn ludo-btn-new" onClick={newGame}>NEW</button>
         </div>
       </div>
+
+      {/* Board */}
+      <div className="ludo-board-container">
+        {/* Dice overlay */}
+        <div className={`ludo-dice ${rolling ? "ludo-dice-roll" : ""} ${dice ? "ludo-dice-show" : ""}`}
+          style={{ borderColor: PLAYER_COLORS[currentPlayer] + "60" }}
+        >
+          {dice ? (
+            <svg viewBox="0 0 3 3" width="36" height="36">
+              {diceDots[dice]?.map(([r, c], i) => (
+                <circle key={i} cx={c * 1 + 0.5} cy={r * 1 + 0.5} r="0.3" fill={PLAYER_COLORS[currentPlayer]} />
+              ))}
+            </svg>
+          ) : (
+            <span className="ludo-dice-placeholder">?</span>
+          )}
+        </div>
+
+        <svg className="ludo-svg" viewBox="-0.2 -0.2 15.4 15.4" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <filter id="tokenGlow">
+              <feDropShadow dx="0" dy="0" stdDeviation="0.25" floodColor="#ff77e9" floodOpacity="0.7" />
+            </filter>
+            <filter id="legalGlow">
+              <feDropShadow dx="0" dy="0" stdDeviation="0.15" floodColor="#ff77e9" floodOpacity="0.5" />
+            </filter>
+          </defs>
+
+          {/* Base quadrants */}
+          <rect x="0" y="0" width="6" height="6" rx="0.3" className="ludo-base-green" />
+          <rect x="9" y="0" width="6" height="6" rx="0.3" className="ludo-base-yellow" />
+          <rect x="9" y="9" width="6" height="6" rx="0.3" className="ludo-base-red" />
+          <rect x="0" y="9" width="6" height="6" rx="0.3" className="ludo-base-blue" />
+
+          {/* Base inner circles (token home spots) */}
+          {Object.entries(BASE_SLOTS).map(([p, slots]) =>
+            slots.map(([r, c], i) => (
+              <circle key={`bs-${p}-${i}`} cx={c + 0.5} cy={r + 0.5} r="0.38"
+                className={`ludo-base-slot ludo-base-slot-${p}`} />
+            ))
+          )}
+
+          {/* Main path */}
+          {PATH_COORDS.map(([r, c], idx) => {
+            const isLegal = legalDestinations.has(`path-${idx}`);
+            const isSafe = SAFE_SQUARES.has(idx);
+            return (
+              <g key={`p-${idx}`} onClick={() => handleCellClick(idx)} className="ludo-cell-g">
+                <rect
+                  x={c + 0.04} y={r + 0.04} width="0.92" height="0.92" rx="0.08"
+                  className={`ludo-path ${isSafe ? "ludo-path-safe" : ""} ${isLegal ? "ludo-path-legal" : ""}`}
+                  filter={isLegal ? "url(#legalGlow)" : undefined}
+                />
+                {isSafe && (
+                  <text x={c + 0.5} y={r + 0.62} textAnchor="middle" className="ludo-star">*</text>
+                )}
+              </g>
+            );
+          })}
+
+          {/* Home lanes */}
+          {Object.entries(HOME_PATHS).map(([p, coords]) =>
+            coords.map(([r, c], i) => {
+              const dest = `H${i + 1}`;
+              const isLegal = legalDestinations.has(`home-${p}-${dest}`);
+              return (
+                <rect key={`h-${p}-${i}`}
+                  x={c + 0.04} y={r + 0.04} width="0.92" height="0.92" rx="0.08"
+                  className={`ludo-home ludo-home-${p} ${isLegal ? "ludo-path-legal" : ""}`}
+                  filter={isLegal ? "url(#legalGlow)" : undefined}
+                  onClick={() => handleCellClick(dest)}
+                />
+              );
+            })
+          )}
+
+          {/* Center */}
+          <g className="ludo-center">
+            <polygon points="7.5,7.5 6,6 9,6" className="ludo-tri ludo-tri-green" />
+            <polygon points="7.5,7.5 9,6 9,9" className="ludo-tri ludo-tri-yellow" />
+            <polygon points="7.5,7.5 9,9 6,9" className="ludo-tri ludo-tri-red" />
+            <polygon points="7.5,7.5 6,9 6,6" className="ludo-tri ludo-tri-blue" />
+            <circle cx="7.5" cy="7.5" r="0.4" className="ludo-center-dot" />
+          </g>
+
+          {/* Tokens */}
+          {tokenPositions.map((t) => {
+            const [dx, dy] = getStackOffset(t.row, t.col, t.player, t.idx);
+            const canMove = movablePieces.has(`${t.player}-${t.idx}`);
+            const isSelected = t.player === currentPlayer && selectedPiece === t.idx;
+            const cx = t.col + 0.5 + dx;
+            const cy = t.row + 0.5 + dy;
+
+            return (
+              <g key={`t-${t.player}-${t.idx}`}
+                className={`ludo-token ${canMove ? "ludo-token-movable" : ""} ${isSelected ? "ludo-token-selected" : ""}`}
+                onClick={() => handlePieceClick(t.player, t.idx)}
+                filter={canMove || isSelected ? "url(#tokenGlow)" : undefined}
+              >
+                <circle cx={cx} cy={cy} r="0.34" className={`ludo-chip ludo-chip-${t.player}`} />
+                <circle cx={cx} cy={cy} r="0.2" className={`ludo-chip-inner ludo-chip-inner-${t.player}`} />
+                <text x={cx} y={cy + 0.08} textAnchor="middle" className="ludo-chip-label">
+                  {t.idx + 1}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+
+      {/* Message bar */}
+      <div className="ludo-msg" style={{ borderColor: PLAYER_COLORS[currentPlayer] + "40" }}>
+        <span className="ludo-msg-dot" style={{ background: PLAYER_COLORS[currentPlayer] }} />
+        {message}
+      </div>
+
+      {winner && (
+        <div className="ludo-winner-overlay" onClick={newGame}>
+          <div className="ludo-winner-text" style={{ color: PLAYER_COLORS[winner] }}>
+            {winner === "green" ? "YOU WIN!" : `${winner.toUpperCase()} WINS!`}
+          </div>
+          <div className="ludo-winner-sub">Click anywhere to play again</div>
+        </div>
+      )}
     </div>
   );
 }
-

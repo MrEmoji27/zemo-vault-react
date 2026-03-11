@@ -311,8 +311,11 @@
 }
 
 /* Corner Accents for Glassmorphic Panels */
-.glass-panel-enhanced::after,
-.arcade-container-enhanced::after {
+.no-corner-accent::after {
+  display: none !important;
+}
+
+.glass-panel-enhanced::after {
   content: '';
   position: absolute;
   top: 0;
@@ -323,6 +326,10 @@
   border-right: 2px solid var(--color-accent-green);
   opacity: 0.6;
   pointer-events: none;
+}
+
+.arcade-container-enhanced::after {
+  display: none;
 }
 
 
@@ -2192,28 +2199,21 @@ body {
   white-space: pre-wrap;
 }
 
-/* Coin flip widget */
+/* Coin flip widget — now Three.js, no container styling */
 .coin-widget {
-  position: fixed;
-  bottom: 2rem;
-  left: 2rem;
-  z-index: 1000;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 12px;
-  border: 1px solid rgba(0, 255, 140, 0.35);
-  background: rgba(0, 0, 0, 0.35);
-  box-shadow: 0 0 14px rgba(0, 255, 140, 0.18), inset 0 0 16px rgba(0, 255, 140, 0.05);
-  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
 }
 
 .coin-widget:hover {
-  box-shadow: 0 0 18px rgba(0, 255, 140, 0.28), inset 0 0 18px rgba(0, 255, 140, 0.08);
+  box-shadow: none !important;
 }
 
 .coin-widget:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.85);
-  outline-offset: 2px;
+  outline: none;
 }
 
 .coin {
@@ -2940,19 +2940,48 @@ body {
   }
 
   /* Arcade Section */
-  .arcade-section {
+  .arcade-section,
+  .arcade-container-enhanced {
     padding: 1rem;
-    margin: 1rem 0;
+    margin: 0.75rem 0;
+    border-radius: 12px;
   }
 
   .arcade-header {
     flex-direction: row;
-    /* Keep row but tighter */
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
+    gap: 0.5rem;
   }
 
   .arcade-title {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
+  }
+
+  /* PrimeReact Carousel mobile touch improvements */
+  .p-carousel .p-carousel-content {
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .p-carousel .p-carousel-prev,
+  .p-carousel .p-carousel-next {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px;
+    background: rgba(0, 255, 140, 0.1) !important;
+    border: 1px solid rgba(0, 255, 140, 0.3) !important;
+    border-radius: 50% !important;
+    color: #00ff8c !important;
+  }
+
+  /* Prevent page scroll when interacting with games */
+  .game-container.active {
+    touch-action: none;
+    overscroll-behavior: contain;
+  }
+
+  .game-container.active canvas {
+    touch-action: none;
   }
 
   /* Scrollable Game Buttons (Native App Feel) */

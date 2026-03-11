@@ -624,6 +624,29 @@ export default function Breakout() {
     }
 
     init();
+    // Touch controls for mobile - move paddle to touch position, tap to launch
+    function onTouchStart(e) {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const tx = e.touches[0].clientX - rect.left;
+      const scaleX = wRef.current / rect.width;
+      paddleRef.current.x = Math.max(50, Math.min(wRef.current - 50, tx * scaleX));
+      if (ballRef.current.stuck) {
+        ballRef.current.stuck = false;
+        setRunning(true);
+      }
+    }
+    function onTouchMove(e) {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const tx = e.touches[0].clientX - rect.left;
+      const scaleX = wRef.current / rect.width;
+      paddleRef.current.x = Math.max(50, Math.min(wRef.current - 50, tx * scaleX));
+    }
+    canvas.style.touchAction = 'none';
+    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+
     window.addEventListener('resize', sizeCanvas);
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
@@ -631,6 +654,8 @@ export default function Breakout() {
 
     return () => {
       cancelAnimationFrame(rafRef.current);
+      canvas.removeEventListener('touchstart', onTouchStart);
+      canvas.removeEventListener('touchmove', onTouchMove);
       window.removeEventListener('resize', sizeCanvas);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
@@ -663,7 +688,7 @@ export default function Breakout() {
           </div>
         )}
       </div>
-      <div className="controls-chip">Arrows/A-D move • Space/Enter launch • P pause • R restart</div>
+      <div className="controls-chip">Arrows/A-D/Touch move • Space/Enter/Tap launch • P pause • R restart</div>
     </div>
   );
 }

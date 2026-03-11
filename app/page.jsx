@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, Suspense, lazy, useMemo } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { getExperiments } from './actions/getExperiments';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -11,8 +11,10 @@ import PixelTrail from './components/PixelTrail';
 import MobileControls from './components/MobileControls';
 import CoinFlip from './components/CoinFlip';
 import ASCIIHeader from './components/ASCIIHeader';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import CyberSelect from './components/CyberSelect';
+import PixelCard from './components/PixelCard';
+import TicTacToe from './components/TicTacToe';
+import ExperimentViewer from './components/ExperimentViewer';
 import { Carousel } from 'primereact/carousel';
 import 'primereact/resources/themes/lara-dark-cyan/theme.css';
 import 'primeicons/primeicons.css';
@@ -27,20 +29,8 @@ const PongGame = lazy(() => import('./components/Pong'));
 const SpaceInvaders = lazy(() => import('./components/SpaceInvadersNeon'));
 const Breakout = lazy(() => import('./components/Breakout'));
 
-// Helper function to map language to Prism identifier
-const getPrismLanguage = (language) => {
-  const langMap = {
-    'python': 'python',
-    'c': 'c',
-    'c/cpp': 'cpp',
-    'cpp': 'cpp',
-    'javascript': 'javascript',
-    'bash': 'bash',
-    'text': 'text'
-  };
-  return langMap[language?.toLowerCase()] || 'text';
-};
 const FruitNinja = lazy(() => import('./components/FruitNinja'));
+const LudoGame = lazy(() => import('./components/Ludo'));
 
 function App() {
   const [labData, setLabData] = useState({});
@@ -52,15 +42,30 @@ function App() {
   const [showArcade, setShowArcade] = useState(false);
   const [activeGame, setActiveGame] = useState('tic-tac-toe');
   const [showSelector, setShowSelector] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    setIsMobile(mq.matches);
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   // Initial Data Fetch
   useEffect(() => {
+    setLabLoading(true);
+    setLabError(null);
     getExperiments()
       .then(data => {
-        console.log("Experiments Loaded:", data);
         setLabData(data);
       })
-      .catch(err => console.error("Experiment Fetch Error:", err));
+      .catch(err => {
+        console.error("Experiment Fetch Error:", err);
+        setLabError('Failed to load experiments. Please refresh the page.');
+      })
+      .finally(() => setLabLoading(false));
   }, []);
 
   useEffect(() => {
@@ -80,16 +85,12 @@ function App() {
   }, [showArcade]);
   const [showExperiment, setShowExperiment] = useState(true);
   const [secretOpen, setSecretOpen] = useState(false);
-
-  const [tttBoard, setTttBoard] = useState(Array(9).fill(null));
-  const [tttXIsNext, setTttXIsNext] = useState(true);
-  const [tttVsComputer, setTttVsComputer] = useState(true);
-  const tttWinner = calculateTttWinner(tttBoard);
+  const [labLoading, setLabLoading] = useState(true);
+  const [labError, setLabError] = useState(null);
 
   const canvasRef = useRef(null);
   const titleRef = useRef(null);
   const overlayRef = useRef(null);
-  const tttAiTimeout = useRef(null);
 
 
   useEffect(() => {
@@ -364,146 +365,6 @@ function App() {
     setShowExperiment(true);
   };
 
-  function handleTttClick(index) {
-    if (tttWinner || tttBoard[index]) return;
-    if (tttVsComputer && !tttXIsNext) return;
-    setTttBoard((prev) => {
-      if (prev[index]) return prev;
-      const next = prev.slice();
-      next[index] = tttXIsNext ? 'X' : 'O';
-      return next;
-    });
-    setTttXIsNext((prev) => !prev);
-  }
-
-  function restartTtt() {
-    if (tttAiTimeout.current) {
-      clearTimeout(tttAiTimeout.current);
-      tttAiTimeout.current = null;
-    }
-    setTttBoard(Array(9).fill(null));
-    setTttXIsNext(true);
-  }
-
-  function isTttBoardFull(board) {
-    return board.every((cell) => cell);
-  }
-
-  function calculateTttWinner(squares) {
-    const lines = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6],
-    ];
-    for (const [a, b, c] of lines) {
-      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-        return squares[a];
-      }
-    }
-    return null;
-  }
-
-  function minimax(board, isMaximizing) {
-    const winner = calculateTttWinner(board);
-    if (winner === 'X') return 1;
-    if (winner === 'O') return -1;
-    if (isTttBoardFull(board)) return 0;
-
-    if (isMaximizing) {
-      let bestScore = -Infinity;
-      for (let i = 0; i < board.length; i++) {
-        if (!board[i]) {
-          board[i] = 'X';
-          const score = minimax(board, false);
-          board[i] = null;
-          bestScore = Math.max(bestScore, score);
-        }
-      }
-      return bestScore;
-    } else {
-      let bestScore = Infinity;
-      for (let i = 0; i < board.length; i++) {
-        if (!board[i]) {
-          board[i] = 'O';
-          const score = minimax(board, true);
-          board[i] = null;
-          bestScore = Math.min(bestScore, score);
-        }
-      }
-      return bestScore;
-    }
-  }
-
-  function findBestTttMove(board) {
-    let bestScore = Infinity;
-    let move = null;
-    for (let i = 0; i < board.length; i++) {
-      if (!board[i]) {
-        board[i] = 'O';
-        const score = minimax(board, true);
-        board[i] = null;
-        if (score < bestScore) {
-          bestScore = score;
-          move = i;
-        }
-      }
-    }
-    return move;
-  }
-
-  useEffect(() => {
-    if (!tttVsComputer) return;
-    if (tttWinner) return;
-    if (tttXIsNext) return;
-    if (isTttBoardFull(tttBoard)) return;
-
-    if (tttAiTimeout.current) {
-      clearTimeout(tttAiTimeout.current);
-    }
-
-    const currentBoard = tttBoard.slice();
-    const move = findBestTttMove(currentBoard);
-    if (move === null) return undefined;
-
-    tttAiTimeout.current = setTimeout(() => {
-      setTttBoard((prev) => {
-        if (calculateTttWinner(prev) || isTttBoardFull(prev) || prev[move]) {
-          return prev;
-        }
-        const next = prev.slice();
-        next[move] = 'O';
-        return next;
-      });
-      setTttXIsNext(true);
-    }, 300);
-
-    return () => {
-      if (tttAiTimeout.current) {
-        clearTimeout(tttAiTimeout.current);
-        tttAiTimeout.current = null;
-      }
-    };
-  }, [tttVsComputer, tttXIsNext, tttWinner, tttBoard]);
-
-  const toggleTttMode = () => {
-    setTttVsComputer((prev) => !prev);
-    restartTtt();
-  };
-
-  const tttStatus = useMemo(() => {
-    if (tttWinner) return `${tttWinner} wins`;
-    if (isTttBoardFull(tttBoard)) return 'Draw';
-    if (tttVsComputer) {
-      return tttXIsNext ? 'Your move (X)' : 'Computer is thinking…';
-    }
-    return `Turn: ${tttXIsNext ? 'X' : 'O'}`;
-  }, [tttWinner, tttBoard, tttVsComputer, tttXIsNext]);
-
   const years = Object.keys(labData);
   const subjects = selectedYear ? Object.keys(labData[selectedYear]) : [];
   const experiments = selectedYear && selectedSubject ? Object.keys(labData[selectedYear][selectedSubject]) : [];
@@ -528,106 +389,56 @@ function App() {
 
       {/* Selector */}
       {showSelector && (
-        <div className="glass-panel" id="selector-ui" style={{ margin: '1.5rem auto', maxWidth: '1200px', padding: '1.5rem' }}>
+        <div className="glass-panel no-corner-accent" id="selector-ui" style={{ margin: '1.5rem auto', maxWidth: '1200px', padding: '1.5rem', border: '1px solid rgba(0, 255, 140, 0.15)', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)' }}>
           <div className="grid grid-cols-3" style={{ gap: '1.5rem' }}>
-            <div className="form-group">
-              <label className="form-label" style={{ color: 'var(--color-accent-green)', marginBottom: '0.5rem', display: 'block', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Academic Year</label>
-              <select
-                className="form-select"
-                style={{
-                  background: 'rgba(0, 0, 0, 0.6)',
-                  border: '1px solid rgba(99, 102, 241, 0.3)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: 'var(--color-text-primary)',
-                  padding: '0.75rem',
-                  width: '100%',
-                  transition: 'all 0.3s ease',
-                  backdropFilter: 'blur(10px)'
-                }}
-                value={selectedYear}
-                onChange={(e) => {
-                  setSelectedYear(e.target.value);
-                  setSelectedSubject('');
-                  setSelectedExperiment('');
-                }}
-              >
-                <option value="" style={{ background: '#000' }}>Select Year</option>
-                {years.map(year => (
-                  <option key={year} value={year} style={{ background: '#000' }}>{year}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" style={{ color: 'var(--color-accent-green)', marginBottom: '0.5rem', display: 'block', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Subject</label>
-              <select
-                className="form-select"
-                style={{
-                  background: 'rgba(0, 0, 0, 0.6)',
-                  border: '1px solid rgba(99, 102, 241, 0.3)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: 'var(--color-text-primary)',
-                  padding: '0.75rem',
-                  width: '100%',
-                  transition: 'all 0.3s ease',
-                  backdropFilter: 'blur(10px)'
-                }}
-                value={selectedSubject}
-                onChange={(e) => {
-                  setSelectedSubject(e.target.value);
-                  setSelectedExperiment('');
-                }}
-                disabled={!selectedYear}
-              >
-                <option value="" style={{ background: '#000' }}>Select Subject</option>
-                {subjects.map(subject => (
-                  <option key={subject} value={subject} style={{ background: '#000' }}>{subject}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" style={{ color: 'var(--color-accent-green)', marginBottom: '0.5rem', display: 'block', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Experiment</label>
-              <select
-                className="form-select"
-                style={{
-                  background: 'rgba(0, 0, 0, 0.6)',
-                  border: '1px solid rgba(99, 102, 241, 0.3)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: 'var(--color-text-primary)',
-                  padding: '0.75rem',
-                  width: '100%',
-                  transition: 'all 0.3s ease',
-                  backdropFilter: 'blur(10px)'
-                }}
-                value={selectedExperiment}
-                onChange={(e) => setSelectedExperiment(e.target.value)}
-                disabled={!selectedSubject}
-              >
-                <option value="" style={{ background: '#000' }}>Select Experiment</option>
-                {experiments.map(exp => (
-                  <option key={exp} value={exp} style={{ background: '#000' }}>
-                    {labData[selectedYear]?.[selectedSubject]?.[exp]?.title || exp}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <CyberSelect
+              label="Academic Year"
+              placeholder="Select Year"
+              value={selectedYear}
+              onChange={(val) => {
+                setSelectedYear(val);
+                setSelectedSubject('');
+                setSelectedExperiment('');
+              }}
+              options={years.map(y => ({ value: y, label: y }))}
+            />
+            <CyberSelect
+              label="Subject"
+              placeholder="Select Subject"
+              value={selectedSubject}
+              onChange={(val) => {
+                setSelectedSubject(val);
+                setSelectedExperiment('');
+              }}
+              options={subjects.map(s => ({ value: s, label: s }))}
+              disabled={!selectedYear}
+            />
+            <CyberSelect
+              label="Experiment"
+              placeholder="Select Experiment"
+              value={selectedExperiment}
+              onChange={(val) => setSelectedExperiment(val)}
+              options={experiments.map(exp => ({
+                value: exp,
+                label: labData[selectedYear]?.[selectedSubject]?.[exp]?.title || exp,
+              }))}
+              disabled={!selectedSubject}
+            />
           </div>
         </div>
       )}
 
       {/* Arcade Section */}
       {showArcade && (
-        <div className="arcade-container-enhanced" id="arcade-section" style={{ margin: '1.5rem auto', maxWidth: '1200px' }}>
-          <div className="arcade-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2 className="arcade-title" style={{ color: 'var(--color-accent-green)', margin: 0 }}>ARCADE</h2>
-            {/* 3D Coin Flip Widget */}
-            <CoinFlip />
+        <div className="arcade-container-enhanced" id="arcade-section" style={{ margin: isMobile ? '0.75rem auto' : '1.5rem auto', maxWidth: '1200px', padding: isMobile ? '1rem' : '1.5rem' }}>
+          <div className="arcade-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '1rem' : '1.5rem', gap: '0.75rem' }}>
+            <h2 className="arcade-title" style={{ color: 'var(--color-accent-green)', margin: 0, fontSize: isMobile ? '1.3rem' : undefined }}>ARCADE</h2>
+            {!isMobile && <CoinFlip />}
 
             <button
               className="neon-button-green"
               onClick={closeArcade}
-              style={{ padding: '0.5rem 1rem', fontSize: '1.2rem', lineHeight: 1 }}
+              style={{ padding: isMobile ? '0.6rem 1.2rem' : '0.5rem 1rem', fontSize: '1.2rem', lineHeight: 1, minWidth: '44px', minHeight: '44px', display: 'grid', placeItems: 'center' }}
             >
               ×
             </button>
@@ -647,59 +458,64 @@ function App() {
               { name: 'Flappy', id: 'flappy' },
               { name: 'Chess', id: 'chess' },
               { name: 'Doom', id: 'doom' },
-              { name: 'Fruit Ninja', id: 'fruit-ninja' }
+              { name: 'Fruit Ninja', id: 'fruit-ninja' },
+              { name: 'Ludo', id: 'ludo' }
             ]}
             numVisible={4}
             numScroll={1}
             responsiveOptions={[
               { breakpoint: '1024px', numVisible: 3, numScroll: 1 },
-              { breakpoint: '768px', numVisible: 2, numScroll: 1 },
-              { breakpoint: '560px', numVisible: 1, numScroll: 1 }
+              { breakpoint: '768px', numVisible: 3, numScroll: 1 },
+              { breakpoint: '560px', numVisible: 2, numScroll: 1 }
             ]}
-            itemTemplate={(game) => (
-              <div style={{ padding: '0.5rem' }}>
-                <button
-                  className={`neon-button-green ${activeGame === game.id ? 'active' : ''}`}
-                  onClick={() => setActiveGame(game.id)}
-                  style={{
-                    opacity: activeGame === game.id ? 1 : 0.7,
-                    width: '100%'
-                  }}
-                >
+            itemTemplate={(game) => {
+              const isActive = activeGame === game.id;
+              const label = (
+                <span style={{
+                  fontFamily: "'Bungee', sans-serif",
+                  fontSize: isMobile ? '0.9rem' : '0.85rem',
+                  color: isActive ? '#00ff8c' : 'rgba(255, 255, 255, 0.5)',
+                  letterSpacing: '0.05em',
+                  textAlign: 'center',
+                  transition: 'color 0.3s ease',
+                }}>
                   {game.name}
-                </button>
-              </div>
-            )}
+                </span>
+              );
+              const cardStyle = {
+                height: isMobile ? '64px' : '80px',
+                background: isActive ? 'rgba(0, 255, 140, 0.06)' : 'rgba(10, 10, 10, 0.8)',
+                borderRadius: '12px',
+                border: `1px solid ${isActive ? 'rgba(0, 255, 140, 0.4)' : 'rgba(255, 255, 255, 0.06)'}`,
+                boxShadow: isActive ? '0 0 20px rgba(0, 255, 140, 0.12)' : 'none',
+                transition: 'border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease',
+                display: 'grid',
+                placeItems: 'center',
+                cursor: 'pointer',
+              };
+              return (
+                <div style={{ padding: '0.4rem' }} onClick={() => setActiveGame(game.id)}>
+                  {isMobile ? (
+                    <div style={cardStyle}>{label}</div>
+                  ) : (
+                    <PixelCard
+                      gap={7}
+                      speed={40}
+                      colors={isActive ? '#00ff8c,#00cc70,#005c33' : '#333,#444,#222'}
+                      style={cardStyle}
+                    >
+                      {label}
+                    </PixelCard>
+                  )}
+                </div>
+              );
+            }}
             style={{ padding: '1rem 0' }}
           />
 
           {/* Game Containers */}
           <div>
-            {activeGame === 'tic-tac-toe' && (
-              <div className="game-container active" id="tic-tac-toe-container">
-                <h3 className="game-title">Tic-Tac-Toe</h3>
-                <div className="flex justify-center items-center gap-4 mb-4">
-                  <button className="control-btn" onClick={toggleTttMode}>
-                    Mode: {tttVsComputer ? 'Player vs Computer' : 'Player vs Player'}
-                  </button>
-                  <button className="control-btn" onClick={restartTtt}>Restart</button>
-                </div>
-                <div className="ttt-board" id="tic-tac-toe-board">
-                  {Array.from({ length: 9 }, (_, i) => (
-                    <button
-                      key={i}
-                      className={`ttt-cell ${tttBoard[i] === 'O' ? 'ai-mark' : tttBoard[i] === 'X' ? 'player-mark' : ''}`}
-                      onClick={() => handleTttClick(i)}
-                    >
-                      {tttBoard[i]}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-center text-green mt-4" id="tic-tac-toe-status">
-                  {tttStatus}
-                </p>
-              </div>
-            )}
+            {activeGame === 'tic-tac-toe' && <TicTacToe />}
 
             {activeGame === '2048' && (
               <div className="game-container active" id="game-2048">
@@ -802,6 +618,16 @@ function App() {
                 </ErrorBoundary>
               </div>
             )}
+
+            {activeGame === 'ludo' && (
+              <div className="game-container active" id="ludo-container">
+                <ErrorBoundary>
+                  <Suspense fallback={<div className="suspense-fallback"><div className="skeleton-bar" /></div>}>
+                    <LudoGame />
+                  </Suspense>
+                </ErrorBoundary>
+              </div>
+            )}
           </div>
 
           {/* Mobile Touch Controls */}
@@ -818,85 +644,24 @@ function App() {
 
       {/* Experiment Display */}
       <div id="experiment-display">
-        {selectedYear && subjects.length === 0 && (
+        {labLoading && (
+          <div className="glass-panel" style={{ margin: '1.5rem auto', maxWidth: '1200px', padding: '2rem', textAlign: 'center' }}>
+            <p style={{ color: 'var(--color-accent-green)', fontFamily: "'Roboto Mono', monospace" }}>Loading experiments...</p>
+          </div>
+        )}
+        {labError && (
+          <div className="glass-panel" style={{ margin: '1.5rem auto', maxWidth: '1200px', padding: '2rem', textAlign: 'center', borderColor: 'rgba(255, 80, 80, 0.3)' }}>
+            <p style={{ color: '#ff5050', fontFamily: "'Roboto Mono', monospace" }}>{labError}</p>
+          </div>
+        )}
+        {selectedYear && subjects.length === 0 && !labLoading && (
           <div className="glass-panel">
             <h2 className="arcade-title mb-4">No Subjects Available</h2>
             <p className="text-center text-cyberpunk-green">This year has no subjects yet. Check back later!</p>
           </div>
         )}
         {currentExperiment && (
-          <div className="glass-panel-enhanced" style={{ margin: '1.5rem auto', maxWidth: '1200px' }}>
-            <div style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '0.75rem',
-              justifyContent: 'center',
-              marginBottom: '1.5rem'
-            }}></div>
-            <h2 className="arcade-title mb-4" style={{ color: 'var(--color-accent-green)', textAlign: 'center', marginBottom: '2rem' }}>{currentExperiment.title}</h2>
-            {currentExperiment.parts && currentExperiment.parts.map((part, index) => (
-              <div key={index} className="mb-4">
-                {part.subtitle && (
-                  <h3 className="game-title mb-2">{part.subtitle}</h3>
-                )}
-                {part.code && (
-                  <div style={{ marginBottom: '1.5rem' }}>
-                    <div className="code-header-cyber">
-                      <h4 className="code-title-cyber">Code:</h4>
-                      <button
-                        className="copy-btn-cyber"
-                        onClick={() => {
-                          let textToCopy = part.code;
-                          // If copying ML code (Python), strip comments to keep it clean
-                          if (selectedSubject === 'ML') {
-                            textToCopy = textToCopy
-                              .split(/\r?\n/)
-                              .filter(line => !line.trim().startsWith('#'))
-                              .join('\n');
-                          }
-
-                          navigator.clipboard.writeText(textToCopy).then(() => {
-                            showToast('Code copied to clipboard!', 2000);
-                          });
-                        }}
-                      >
-                        Copy
-                      </button>
-                    </div>
-                    <SyntaxHighlighter
-                      language={getPrismLanguage(part.language)}
-                      style={oneDark}
-                      customStyle={{
-                        margin: 0,
-                        borderRadius: 'var(--radius-lg)',
-                        background: 'linear-gradient(135deg, rgba(10, 10, 10, 0.85) 0%, rgba(15, 15, 20, 0.9) 100%)',
-                        border: '1px solid rgba(0, 255, 140, 0.15)',
-                        fontSize: '0.9rem',
-                        lineHeight: '1.7',
-                      }}
-                      codeTagProps={{
-                        style: {
-                          fontFamily: "'Fira Code', monospace",
-                        }
-                      }}
-                      showLineNumbers={true}
-                      wrapLines={true}
-                    >
-                      {part.code}
-                    </SyntaxHighlighter>
-                  </div>
-                )}
-                {part.explanation && (
-                  <div style={{ marginBottom: '1.5rem' }}>
-                    <div className="code-title-cyber" style={{ marginBottom: '0.75rem' }}>Explanation:</div>
-                    <div className="terminal-output">
-                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}><code>{part.explanation}</code></pre>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <ExperimentViewer experiment={currentExperiment} selectedSubject={selectedSubject} />
         )}
       </div>
       <footer className="footer">

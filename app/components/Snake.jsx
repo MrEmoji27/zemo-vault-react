@@ -58,6 +58,26 @@ function Snake() {
     moveQueue.current.push(DIRECTIONS[key]);
   }, []);
 
+  // Swipe gesture support for mobile
+  const touchStart = useRef(null);
+  const onTouchStart = useCallback((e) => {
+    const t = e.touches[0];
+    touchStart.current = { x: t.clientX, y: t.clientY };
+  }, []);
+  const onTouchEnd = useCallback((e) => {
+    if (!touchStart.current) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStart.current.x;
+    const dy = t.clientY - touchStart.current.y;
+    touchStart.current = null;
+    if (Math.abs(dx) < 30 && Math.abs(dy) < 30) return;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      handleDirectionChange(dx > 0 ? 'ArrowRight' : 'ArrowLeft');
+    } else {
+      handleDirectionChange(dy > 0 ? 'ArrowDown' : 'ArrowUp');
+    }
+  }, [handleDirectionChange]);
+
   useEffect(() => {
     const onKeyDown = (event) => {
       // Prevent scrolling with arrows/space
@@ -167,7 +187,7 @@ function Snake() {
       </div>
 
       <div className="game-container-outer">
-        <div className="snake-board" ref={boardRef}>
+        <div className="snake-board" ref={boardRef} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} style={{ touchAction: 'none' }}>
           <div className="scanlines"></div>
           {boardCells.map(({ x, y, key }) => {
             const isHead = snake[0]?.x === x && snake[0]?.y === y;
@@ -191,7 +211,7 @@ function Snake() {
         )}
       </div>
 
-      <p className="retro-text small mt-4">ARROWS TO MOVE • P TO PAUSE</p>
+      <p className="retro-text small mt-4">ARROWS / SWIPE TO MOVE • P TO PAUSE</p>
 
       <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');

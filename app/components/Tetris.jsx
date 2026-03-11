@@ -241,6 +241,33 @@ function Tetris() {
     };
   }, [state.running, state.gameOver, state.level, state.piece]);
 
+  // Swipe gesture support for mobile
+  const touchStartRef = useRef(null);
+  const onTouchStart = (e) => {
+    const t = e.touches[0];
+    touchStartRef.current = { x: t.clientX, y: t.clientY, time: Date.now() };
+  };
+  const onTouchEnd = (e) => {
+    if (!touchStartRef.current) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStartRef.current.x;
+    const dy = t.clientY - touchStartRef.current.y;
+    const elapsed = Date.now() - touchStartRef.current.time;
+    touchStartRef.current = null;
+    // Tap = hard drop
+    if (Math.abs(dx) < 20 && Math.abs(dy) < 20 && elapsed < 300) {
+      dispatch({ type: 'HARD_DROP' });
+      return;
+    }
+    if (Math.abs(dx) < 30 && Math.abs(dy) < 30) return;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      dispatch({ type: 'MOVE', direction: dx > 0 ? 'right' : 'left' });
+    } else {
+      if (dy > 0) dispatch({ type: 'MOVE', direction: 'down' });
+      else dispatch({ type: 'ROTATE' });
+    }
+  };
+
   // Key controls
   useEffect(() => {
     const handleKey = (event) => {
@@ -413,6 +440,9 @@ function Tetris() {
           width={COLS * BLOCK_SIZE}
           height={ROWS * BLOCK_SIZE}
           className="tetris-canvas"
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+          style={{ touchAction: 'none' }}
         />
 
         <div className="tetris-info">
@@ -441,9 +471,9 @@ function Tetris() {
           </div>
 
           <div className="tetris-help">
-            <p>ARROWS to Move</p>
-            <p>UP to Rotate</p>
-            <p>SPACE Hard Drop</p>
+            <p>ARROWS / SWIPE to Move</p>
+            <p>UP / SWIPE UP Rotate</p>
+            <p>SPACE / TAP Hard Drop</p>
             <p>P to Pause</p>
           </div>
 

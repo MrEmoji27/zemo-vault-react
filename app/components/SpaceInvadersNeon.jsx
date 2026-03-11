@@ -620,6 +620,36 @@ export default function SpaceInvadersNeon() {
 
     function onKeyUp(e) { keysRef.current.delete(e.key.toLowerCase()); }
 
+    // Touch controls for mobile - drag to move ship, tap to fire
+    let lastTouchX = null;
+    function onTouchStart(e) {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const tx = e.touches[0].clientX - rect.left;
+      const scaleX = widthRef.current / rect.width;
+      lastTouchX = tx * scaleX;
+      playerRef.current.x = Math.max(24, Math.min(widthRef.current - 24, lastTouchX));
+      if (!runningRef.current && !gameOverRef.current) {
+        setRunning(true);
+      }
+    }
+    function onTouchMove(e) {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const tx = e.touches[0].clientX - rect.left;
+      const scaleX = widthRef.current / rect.width;
+      lastTouchX = tx * scaleX;
+      playerRef.current.x = Math.max(24, Math.min(widthRef.current - 24, lastTouchX));
+    }
+    function onTouchEnd(e) {
+      // Tap = fire (short touch with minimal movement)
+      if (runningRef.current) fire();
+    }
+    canvas.style.touchAction = 'none';
+    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+    canvas.addEventListener('touchend', onTouchEnd, { passive: false });
+
     fleetRef.current = createFleet(level);
     shieldsRef.current = createShields();
     window.addEventListener('resize', onResize);
@@ -629,6 +659,9 @@ export default function SpaceInvadersNeon() {
 
     return () => {
       cancelAnimationFrame(rafRef.current);
+      canvas.removeEventListener('touchstart', onTouchStart);
+      canvas.removeEventListener('touchmove', onTouchMove);
+      canvas.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('resize', onResize);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
@@ -669,7 +702,7 @@ export default function SpaceInvadersNeon() {
           </div>
         )}
       </div>
-      <div className="controls-chip">Arrows/A-D move • Space shoot • P pause • R restart • Enter start</div>
+      <div className="controls-chip">Arrows/A-D/Touch move • Space/Tap shoot • P pause • R restart</div>
     </div>
   );
 }
