@@ -9,6 +9,7 @@ const LANG_MAP = {
   'c/cpp': 'cpp',
   'cpp': 'cpp',
   'javascript': 'javascript',
+  'java': 'java',
   'bash': 'bash',
   'text': 'text',
 };

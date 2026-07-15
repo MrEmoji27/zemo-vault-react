@@ -30,7 +30,6 @@ const SpaceInvaders = lazy(() => import('./components/SpaceInvadersNeon'));
 const Breakout = lazy(() => import('./components/Breakout'));
 
 const FruitNinja = lazy(() => import('./components/FruitNinja'));
-const LudoGame = lazy(() => import('./components/Ludo'));
 
 function App() {
   const [labData, setLabData] = useState({});
@@ -458,8 +457,7 @@ function App() {
               { name: 'Flappy', id: 'flappy' },
               { name: 'Chess', id: 'chess' },
               { name: 'Doom', id: 'doom' },
-              { name: 'Fruit Ninja', id: 'fruit-ninja' },
-              { name: 'Ludo', id: 'ludo' }
+              { name: 'Fruit Ninja', id: 'fruit-ninja' }
             ]}
             numVisible={4}
             numScroll={1}
@@ -619,15 +617,6 @@ function App() {
               </div>
             )}
 
-            {activeGame === 'ludo' && (
-              <div className="game-container active" id="ludo-container">
-                <ErrorBoundary>
-                  <Suspense fallback={<div className="suspense-fallback"><div className="skeleton-bar" /></div>}>
-                    <LudoGame />
-                  </Suspense>
-                </ErrorBoundary>
-              </div>
-            )}
           </div>
 
           {/* Mobile Touch Controls */}
